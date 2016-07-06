@@ -40,9 +40,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -93,6 +102,9 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.2\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
+    <Reference Include="Telegram.Bot">
+      <HintPath>..\packages\Telegram.Bot.10.3.1\lib\net45\Telegram.Bot.dll</HintPath>
+    </Reference>
     <Reference Include="WebGrease">
       <Private>True</Private>
       <HintPath>..\packages\WebGrease.1.5.2\lib\WebGrease.dll</HintPath>
@@ -100,11 +112,6 @@
     <Reference Include="Antlr3.Runtime">
       <Private>True</Private>
       <HintPath>..\packages\Antlr.3.4.1.9004\lib\Antlr3.Runtime.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -116,6 +123,23 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\Telegram\AudioModel.cs" />
+    <Compile Include="Models\Telegram\CallbackQueryModel.cs" />
+    <Compile Include="Models\Telegram\ChatModel.cs" />
+    <Compile Include="Models\Telegram\ChosenInlineResultModel.cs" />
+    <Compile Include="Models\Telegram\ContactModel.cs" />
+    <Compile Include="Models\Telegram\DocumentModel.cs" />
+    <Compile Include="Models\Telegram\InlineQueryModel.cs" />
+    <Compile Include="Models\Telegram\LocationModel.cs" />
+    <Compile Include="Models\Telegram\MessageEntityModel.cs" />
+    <Compile Include="Models\Telegram\MessageModel.cs" />
+    <Compile Include="Models\Telegram\PhotoSizeModel.cs" />
+    <Compile Include="Models\Telegram\StickerModel.cs" />
+    <Compile Include="Models\Telegram\UpdateModel.cs" />
+    <Compile Include="Models\Telegram\UserModel.cs" />
+    <Compile Include="Models\Telegram\VenueModel.cs" />
+    <Compile Include="Models\Telegram\VideoModel.cs" />
+    <Compile Include="Models\Telegram\VoiceModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -158,7 +182,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
     <Folder Include="Views\Bot\" />
   </ItemGroup>
   <ItemGroup>

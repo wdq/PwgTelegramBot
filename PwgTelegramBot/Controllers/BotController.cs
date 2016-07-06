@@ -5,9 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
+using PwgTelegramBot.Models.Telegram;
+using Telegram.Bot.Types.Enums;
 
 namespace PwgTelegramBot.Controllers
 {
@@ -27,9 +30,23 @@ namespace PwgTelegramBot.Controllers
 
             dynamic inputJson = JsonConvert.DeserializeObject(inputString);
 
-            
+            UpdateModel update = Models.Telegram.UpdateModel.FromJson(inputJson);
 
-            return View();
+            var a = inputJson.message;
+            var b = inputJson.message.message_id;
+
+            if (update.Message != null)
+            {
+                var bot = new Telegram.Bot.Api(ConfigurationManager.AppSettings["TelegramBotToken"]);
+                bot.SendTextMessageAsync(update.Message.Chat.Id, update.Message.Text);
+            }
+
+
+            JsonResult jsonResult = new JsonResult();
+            jsonResult.Data = "ok";
+            jsonResult.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+
+            return jsonResult;
         }
 
         public JsonResult EnableBot()
