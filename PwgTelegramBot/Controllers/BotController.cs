@@ -54,8 +54,128 @@ namespace PwgTelegramBot.Controllers
 
             UpdateModel update = Models.Telegram.UpdateModel.FromJson(inputJson);
 
-
+            int userId = 0;
             if (update.Message != null)
+            {
+                userId = update.Message.From.Id;
+            }
+            else if (update.EditedMessage != null)
+            {
+                userId = update.EditedMessage.From.Id;
+
+            }
+            else if (update.CallbackQuery != null)
+            {
+                userId = update.CallbackQuery.From.Id;
+            }
+
+            if (userId != 0)
+            {
+                using(var database = new BotDatabaseDataContext())
+                {
+                    var userState = database.UserStates.FirstOrDefault(x => x.UserId == userId);
+                    if (userState == null) // User doesn't have a state in the database, add the user to the database, default to a user without permissions.
+                    {
+                        userState = new UserState();
+                        userState.UserId = userId;
+                        userState.State = "0"; // Main menu
+                        userState.Approved = false;
+                        userState.IsAdmin = false;
+                        userState.IsStateTextEntry = false;
+                        userState.Notes = "New unapproved user " + DateTime.Now + ".";
+                        database.UserStates.InsertOnSubmit(userState);
+                        database.SubmitChanges();
+                    }
+                    if (userState.Approved.HasValue)
+                    {
+                        if (userState.Approved.Value) // If the user has permission to use the bot: display menus.
+                        {
+                            string messageText = "";
+                            int chatId = 0;
+                            if (update.Message != null) // Get the message text, and the chat id. This allows the user to either type in a response (message) or click a button (callbackquery).
+                            {
+                                messageText = update.Message.Text;
+                                chatId = update.Message.Chat.Id;
+                            }
+                            else if (update.CallbackQuery != null)
+                            {
+                                messageText = update.CallbackQuery.Data;
+                                chatId = update.CallbackQuery.Message.Chat.Id;
+                            }
+
+
+
+                            // Possibilities:
+                            // * Single string: 1
+                            // * Multiple strings separated by a space: 1 1 a 9 z
+                            // * Text 
+
+                            if (userState.IsStateTextEntry.HasValue)
+                            {
+                                if (userState.IsStateTextEntry.Value) // User is entering text, so don't try to parse out the commands
+                                {
+
+                                }
+                                else // User is entering a command, either single string, or space separated strings
+                                {
+                                    string[] commands = messageText.Split(' ');
+                                    if (messageText == "0" || messageText == "/start") // User entered 0, or start, go back to the main menu
+                                    {
+                                        userState.State = "0"; 
+
+                                    } 
+                                    else if (commands.Length > 1) // More than one command entered, overwrite previous state
+                                    {
+                                        userState.State = messageText;
+                                    }
+                                    else // Single command entered, append to state
+                                    {
+                                        if (userState.State == "0")
+                                        {
+                                            userState.State = messageText; // If the user is coming from the main menu, get rid of the 0 from the start
+                                        }
+                                        else
+                                        {
+                                            userState.State += " " + messageText;
+                                        }
+                                    }
+                                }
+                            }
+                            database.SubmitChanges();
+
+                            if (userState.State == "0") // Main menu
+                            {
+                                var messageSent = MessageModel.SendMessage(chatId,
+                                    "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null);
+                                var messageSent2 = MessageModel.SendMessage(chatId,
+                                    "Please choose a service to interact with.", "", null, null, null, "0");
+                            }
+                            else
+                            {
+                                var messageSent = MessageModel.SendMessage(chatId,
+                                    "Your state is: " + userState.State, "", null, null, null, null);
+                            }
+                            database.SubmitChanges();
+                        }
+                        else // If the user does not have permission to use the bot: tell the user to message me to request permission. 
+                        {
+                            // todo: the update.Message.Chat.Id may be null
+                            var messageSent = MessageModel.SendMessage(update.Message.Chat.Id,
+                                "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null);
+                            var messageSent2 = MessageModel.SendMessage(update.Message.Chat.Id,
+                                "You do not have permission to use me.", "", null, null, null, null);
+                            var messageSent3 = MessageModel.SendMessage(update.Message.Chat.Id,
+                                "Please send a message to @quade, containing " + userState.UserId + ", to request permission.", "", null, null, null, null);
+                        }
+                        
+                    }
+
+                }
+            }
+
+
+
+            /*if (update.Message != null)
             {
                 //var bot = new Telegram.Bot.Api(ConfigurationManager.AppSettings["TelegramBotToken"]);
 
@@ -128,7 +248,7 @@ namespace PwgTelegramBot.Controllers
                 {
                     var sent = MessageModel.SendMessage(update.CallbackQuery.Message.Chat.Id, "Sorry, that action isn't supported yet. ", "", null, null, null, null);
                 }
-            }
+            } */
 
 
             JsonResult jsonResult = new JsonResult();

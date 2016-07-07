@@ -95,7 +95,15 @@ namespace PwgTelegramBot.Models.Telegram
 
             if (!string.IsNullOrEmpty(replyMarkup) && !string.IsNullOrWhiteSpace(replyMarkup))
             {
-                if (replyMarkup == "mainmenu")
+                if (replyMarkup == "0") // Main menu
+                {
+                    var keyboardMarkup = new InlineKeyboardMarkup();
+                    var button1 = new InlineKeyboardButton("1. Harvest", "", "1", "");
+                    var button2 = new InlineKeyboardButton("2. Pivotal Tracker", "", "2", "");
+                    keyboardMarkup.inline_keyboard = new InlineKeyboardButton[,] { { button1, button2 } };
+                    model.reply_markup = keyboardMarkup;
+                }
+                /*if (replyMarkup == "mainmenu")
                 {
                     var keyboardMarkup = new InlineKeyboardMarkup();
                     var button1 = new InlineKeyboardButton("Harvest", "", "mainmenu_harvest", "");
@@ -141,7 +149,7 @@ namespace PwgTelegramBot.Models.Telegram
                                                                                     { deliverStory, acceptStory },
                                                                                     {rejectStory, restartStory}};
                     model.reply_markup = keyboardMarkup;
-                }
+                } */
             }
 
 
