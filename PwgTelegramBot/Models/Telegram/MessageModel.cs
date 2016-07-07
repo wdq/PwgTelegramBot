@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Script.Serialization;
 using Harvest.Net;
+using Harvest.Net.Models;
 using Newtonsoft.Json;
 
 namespace PwgTelegramBot.Models.Telegram
@@ -139,12 +140,12 @@ namespace PwgTelegramBot.Models.Telegram
                         var keyboardMarkup = new InlineKeyboardMarkup();
                         int clientIndex = int.Parse(replyMarkupArray[2]) - 1;
                         var client = harvestClient.ListClients().OrderBy(x => x.Name).ElementAt(clientIndex);
-                        var projects = harvestClient.ListProjects(client.Id);
+                        var projects = harvestClient.ListProjects(client.Id).OrderBy(x => x.Name);
                         var buttonsArray = new InlineKeyboardButton[projects.Count(), 1];
                         int i = 0;
                         foreach (var project in projects)
                         {
-                            var button = new InlineKeyboardButton((i + 1) + ". " + project.Name, "", "1 1 " + clientIndex + " " + (i + 1), "");
+                            var button = new InlineKeyboardButton((i + 1) + ". " + project.Name, "", "1 1 " + (clientIndex + 1) + " " + (i + 1), "");
                             buttonsArray[i, 0] = button;
                             i++;
                         }
@@ -152,6 +153,45 @@ namespace PwgTelegramBot.Models.Telegram
                         keyboardMarkup.inline_keyboard = buttonsArray;
                         model.reply_markup = keyboardMarkup;
                     }
+                }
+                else if (replyMarkupArray.Length == 4)
+                {
+                    if (replyMarkupArray[0] == "1" && replyMarkupArray[1] == "1") // Harvest, add a new time entry, selected a client, selected a project, select a task.
+                    {
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        int clientIndex = int.Parse(replyMarkupArray[2]) - 1;
+                        int projectIndex = int.Parse(replyMarkupArray[3]) - 1;
+                        var client = harvestClient.ListClients().OrderBy(x => x.Name).ElementAt(clientIndex);
+                        var project = harvestClient.ListProjects(client.Id).OrderBy(x => x.Name).ElementAt(projectIndex);
+                        var taskAssignments = harvestClient.ListTaskAssignments(project.Id);
+                        List<Task> tasks = new List<Task>();
+                        foreach (var taskAssignment in taskAssignments)
+                        {
+                            var task = harvestClient.Task(taskAssignment.TaskId);
+                            tasks.Add(task);
+                        }
+                        tasks = tasks.OrderBy(x => x.Name).ToList();
+                        var buttonsArray = new InlineKeyboardButton[tasks.Count(), 1];
+                        int i = 0;
+                        foreach (var task in tasks)
+                        {
+                            string isBillible = "";
+                            isBillible = task.BillableByDefault ? "Billable" : "Non-Billable";
+                            if (task.Billable.HasValue)
+                            {
+                                isBillible = task.Billable.Value ? "Billable" : "Non-Billable";
+                                
+                            }
+                            var button = new InlineKeyboardButton((i + 1) + ". " + task.Name + " - " + isBillible, "", "1 1 " + (clientIndex + 1) + " " + (projectIndex + 1) + " " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
+                                                
+                                                
                 }
                 /*if (replyMarkup == "mainmenu")
                 {

@@ -220,45 +220,65 @@ namespace PwgTelegramBot.Controllers
                                     }
                                     else // User is authenticated
                                     {
-                                        if (userState.State == "1") // Main menu
+                                        string[] stateArray = userState.State.Split(' ');
+                                        if (stateArray.Length == 1)
                                         {
-                                            var messageSent = MessageModel.SendMessage(chatId,
-                                                "Select a Harvest action:", "", null, null, null, "1", null);
-                                        }
-                                        else if (userState.State.Length > 2)
-                                        {
-                                            HarvestRestClient harvestClient = GetHarvestClient(database, userId);
-
-                                            if (userState.State.Substring(0, 3) == "1 1") // Add a new time entry
+                                            if (stateArray[0] == "1") // Harvest
                                             {
-                                                string[] stateArray = userState.State.Split(' ');
-
-                                                if (userState.State == "1 1")
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                    "Select a Harvest action:", "", null, null, null, "1", null);
+                                            }
+                                            else if (stateArray[0] == "2") // Pivotal
+                                            {
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                        "Pivotal Tracker isn't supported yet.", "", null, null, null, null, null);
+                                            }
+                                        }
+                                        else if (stateArray.Length == 2)
+                                        {
+                                            if (stateArray[0] == "1") // Harvest
+                                            {
+                                                HarvestRestClient harvestClient = GetHarvestClient(database, userId);
+                                                if (stateArray[1] == "1") // Harvest, Add a new time entry
                                                 {
                                                     var messageSent = MessageModel.SendMessage(chatId,
                                                         "Select a client:", "", null, null, null, "1 1", harvestClient);
-                                                } else if (stateArray.Length > 2)
+
+                                                }
+                                                else if (stateArray[1] == "2") // Harvest, Edit an existing time entry
                                                 {
-                                                    if (stateArray.Length == 3) // Client selection
-                                                    {
-                                                        var messageSent = MessageModel.SendMessage(chatId,
-                                                            "Select a project:", "", null, null, null, "1 1 " + stateArray[2], harvestClient);
-                                                    }
+                                                    var messageSent = MessageModel.SendMessage(chatId,
+                                                        "Editing time entries isn't supported yet.", "", null, null, null, null, null);
                                                 }
                                             }
-                                            else if (userState.State.Substring(0, 3) == "1 2") // Edit an existing time entry
+                                            else if (stateArray[0] == "2") // Pivotal
                                             {
-                                                var messageSent = MessageModel.SendMessage(chatId,
-                                                    "Editing time entries isn't supported yet.", "", null, null, null, null, null);
+                                                
                                             }
                                         }
-  
+                                        else if (stateArray.Length == 3)
+                                        {
+                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, select a project.
+                                            {
+                                                HarvestRestClient harvestClient = GetHarvestClient(database, userId);
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                    "Select a project:", "", null, null, null, "1 1 " + stateArray[2], harvestClient);
+                                            }
+                                        }
+                                        else if (stateArray.Length == 4)
+                                        {
+                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, selected a project, select a task.
+                                            {
+                                                HarvestRestClient harvestClient = GetHarvestClient(database, userId);
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                    "Select a task:", "", null, null, null, "1 1 " + stateArray[2] + " " + stateArray[3], harvestClient);
+                                            }
+                                        }
                                     }
                                 }
                                 else if (userState.State.Substring(0, 1) == "2") // Pivotal
                                 {
-                                    var messageSent = MessageModel.SendMessage(chatId,
-                                        "Pivotal Tracker isn't supported yet.", "", null, null, null, null, null);
+    
                                 }
 
                                 //var messageSent = MessageModel.SendMessage(chatId,
