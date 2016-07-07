@@ -8,7 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Web;
 using System.Web.Mvc;
+using Harvest.Net;
+using Harvest.Net.Models.Interfaces;
+using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
+using PwgTelegramBot.Models;
 using PwgTelegramBot.Models.Telegram;
 using PwgTelegramBot.Models.Tracker.Projects;
 using Telegram.Bot.Types;
@@ -32,6 +36,26 @@ namespace PwgTelegramBot.Controllers
             string authenticationCode = Request.QueryString["code"];
 
             return View((object) authenticationCode);
+        }
+
+        public HarvestRestClient GetHarvestClient(BotDatabaseDataContext database, int userId)
+        {
+            var harvestAuth = database.HarvestAuths.FirstOrDefault(x => x.UserId == userId);
+            var token = new WebRequestHelper.HarvestOAuthResponse();
+
+            bool isExpired = DateTime.Now > harvestAuth.HarvestTokenExpiration.Value;
+            if (isExpired)
+            {
+                token = WebRequestHelper.PostHarvestOAuth(harvestAuth.HarvestCode, isExpired);
+                harvestAuth.HarvestTokenExpiration = token.Expiration;
+                harvestAuth.HarvestRefreshToken = token.RefreshToken;
+                harvestAuth.HarvestToken = token.AccessToken;
+
+                database.SubmitChanges();
+            }
+
+            HarvestRestClient harvestClient = new HarvestRestClient(ConfigurationManager.AppSettings["HarvestAccountName"], ConfigurationManager.AppSettings["HarvestClientID"], ConfigurationManager.AppSettings["HarvestClientSecret"], harvestAuth.HarvestToken);
+            return harvestClient;
         }
 
 
@@ -109,6 +133,38 @@ namespace PwgTelegramBot.Controllers
                             // * Single string: 1
                             // * Multiple strings separated by a space: 1 1 a 9 z
                             // * Text 
+                            // * A specific command starting like /command
+
+                            if (messageText.Length > "/authenticateharvest ".Length) // Associate a harvest authentication token with a user
+                            {
+                                if (messageText.Substring(0, "/authenticateharvest ".Length) == "/authenticateharvest ")
+                                {
+                                    string harvestAuthenticationCode = messageText.Substring("/authenticateharvest ".Length, (messageText.Length - "/authenticateharvest ".Length)).Trim();
+                                    var harvestAuth = database.HarvestAuths.FirstOrDefault(x => x.UserId == userId); // Check to see if user already has code in database
+                                    if (harvestAuth != null) // If the user exists, then just update the code
+                                    {
+                                        harvestAuth.HarvestCode = harvestAuthenticationCode;
+                                    }
+                                    else // If the user doesn't exist add a new row
+                                    {
+                                        harvestAuth = new HarvestAuth();
+                                        harvestAuth.UserId = userId;
+                                        harvestAuth.HarvestCode = harvestAuthenticationCode;
+                                        database.HarvestAuths.InsertOnSubmit(harvestAuth);
+                                    }
+                                    database.SubmitChanges();
+
+                                    var postAuth = WebRequestHelper.PostHarvestOAuth(harvestAuthenticationCode, false);
+
+                                    harvestAuth.HarvestRefreshToken = postAuth.RefreshToken;
+                                    harvestAuth.HarvestToken = postAuth.AccessToken;
+                                    harvestAuth.HarvestTokenExpiration = postAuth.Expiration;
+                                    database.SubmitChanges();
+
+                                    var messageSent = MessageModel.SendMessage(chatId,
+                                        "You have successfully connected your Harvest account to your Telegram account.", "", null, null, null, null, null);
+                                }
+                            }
 
                             if (userState.IsStateTextEntry.HasValue)
                             {
@@ -146,14 +202,67 @@ namespace PwgTelegramBot.Controllers
                             if (userState.State == "0") // Main menu
                             {
                                 var messageSent = MessageModel.SendMessage(chatId,
-                                    "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null);
+                                    "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null, null);
                                 var messageSent2 = MessageModel.SendMessage(chatId,
-                                    "Please choose a service to interact with.", "", null, null, null, "0");
+                                    "Please choose a service to interact with:", "", null, null, null, "0", null);
                             }
                             else
                             {
-                                var messageSent = MessageModel.SendMessage(chatId,
-                                    "Your state is: " + userState.State, "", null, null, null, null);
+                                if (userState.State.Substring(0, 1) == "1") // Harvest
+                                {
+                                    var harvestAuth = database.HarvestAuths.FirstOrDefault(x => x.UserId == userId);
+                                    if (harvestAuth == null) // User isn't authenticated with Harvest, send them a link to authenticate
+                                    {
+                                        var messageSent = MessageModel.SendMessage(chatId,
+                                            "You haven't linked your Harvest account with your Telegram account.", "", null, null, null, null, null);
+                                        var messageSent2 = MessageModel.SendMessage(chatId,
+                                            "Please follow this link to connect your accounts: " + "https://" + ConfigurationManager.AppSettings["HarvestAccountName"] + ".harvestapp.com/oauth2/authorize?client_id=" + ConfigurationManager.AppSettings["HarvestClientID"] + "&redirect_uri=" + "https://pwgwebhooktestbot.quade.co/PwgTelegramBot/Bot/HarvestAuthRedirect" + "&state=optional-csrf-token&response_type=code", "", null, null, null, null, null);
+                                    }
+                                    else // User is authenticated
+                                    {
+                                        if (userState.State == "1") // Main menu
+                                        {
+                                            var messageSent = MessageModel.SendMessage(chatId,
+                                                "Select a Harvest action:", "", null, null, null, "1", null);
+                                        }
+                                        else if (userState.State.Length > 2)
+                                        {
+                                            HarvestRestClient harvestClient = GetHarvestClient(database, userId);
+
+                                            if (userState.State.Substring(0, 3) == "1 1") // Add a new time entry
+                                            {
+                                                string[] stateArray = userState.State.Split(' ');
+
+                                                if (userState.State == "1 1")
+                                                {
+                                                    var messageSent = MessageModel.SendMessage(chatId,
+                                                        "Select a client:", "", null, null, null, "1 1", harvestClient);
+                                                } else if (stateArray.Length > 2)
+                                                {
+                                                    if (stateArray.Length == 3) // Client selection
+                                                    {
+                                                        var messageSent = MessageModel.SendMessage(chatId,
+                                                            "Select a project:", "", null, null, null, "1 1 " + stateArray[2], harvestClient);
+                                                    }
+                                                }
+                                            }
+                                            else if (userState.State.Substring(0, 3) == "1 2") // Edit an existing time entry
+                                            {
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                    "Editing time entries isn't supported yet.", "", null, null, null, null, null);
+                                            }
+                                        }
+  
+                                    }
+                                }
+                                else if (userState.State.Substring(0, 1) == "2") // Pivotal
+                                {
+                                    var messageSent = MessageModel.SendMessage(chatId,
+                                        "Pivotal Tracker isn't supported yet.", "", null, null, null, null, null);
+                                }
+
+                                //var messageSent = MessageModel.SendMessage(chatId,
+                                //    "Your state is: " + userState.State, "", null, null, null, null);
                             }
                             database.SubmitChanges();
                         }
@@ -161,11 +270,11 @@ namespace PwgTelegramBot.Controllers
                         {
                             // todo: the update.Message.Chat.Id may be null
                             var messageSent = MessageModel.SendMessage(update.Message.Chat.Id,
-                                "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null);
+                                "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null, null);
                             var messageSent2 = MessageModel.SendMessage(update.Message.Chat.Id,
-                                "You do not have permission to use me.", "", null, null, null, null);
+                                "You do not have permission to use me.", "", null, null, null, null, null);
                             var messageSent3 = MessageModel.SendMessage(update.Message.Chat.Id,
-                                "Please send a message to @quade, containing " + userState.UserId + ", to request permission.", "", null, null, null, null);
+                                "Please send a message to @quade, containing " + userState.UserId + ", to request permission.", "", null, null, null, null, null);
                         }
                         
                     }

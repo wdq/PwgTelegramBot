@@ -10,4 +10,13 @@
       <Column Name="IsStateTextEntry" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
     </Type>
   </Table>
+  <Table Name="dbo.HarvestAuth" Member="HarvestAuths">
+    <Type Name="HarvestAuth">
+      <Column Name="UserId" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="HarvestCode" Type="System.String" DbType="NVarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="HarvestToken" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="HarvestTokenExpiration" Type="System.DateTime" DbType="DateTime2" CanBeNull="true" />
+      <Column Name="HarvestRefreshToken" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+    </Type>
+  </Table>
 </Database>

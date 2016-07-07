@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Script.Serialization;
+using Harvest.Net;
 using Newtonsoft.Json;
 
 namespace PwgTelegramBot.Models.Telegram
@@ -64,7 +65,7 @@ namespace PwgTelegramBot.Models.Telegram
 
 
 
-        public static MessageModel SendMessage(int chatId, string text, string parseMode, bool? disableWebPagePreview, bool? disableNotification, int? replyToMessageId, string replyMarkup)
+        public static MessageModel SendMessage(int chatId, string text, string parseMode, bool? disableWebPagePreview, bool? disableNotification, int? replyToMessageId, string replyMarkup, HarvestRestClient harvestClient)
         {
             SendMessageModel model = new SendMessageModel();
 
@@ -95,6 +96,7 @@ namespace PwgTelegramBot.Models.Telegram
 
             if (!string.IsNullOrEmpty(replyMarkup) && !string.IsNullOrWhiteSpace(replyMarkup))
             {
+                string[] replyMarkupArray = replyMarkup.Split(' ');
                 if (replyMarkup == "0") // Main menu
                 {
                     var keyboardMarkup = new InlineKeyboardMarkup();
@@ -102,6 +104,54 @@ namespace PwgTelegramBot.Models.Telegram
                     var button2 = new InlineKeyboardButton("2. Pivotal Tracker", "", "2", "");
                     keyboardMarkup.inline_keyboard = new InlineKeyboardButton[,] { { button1, button2 } };
                     model.reply_markup = keyboardMarkup;
+                }
+                else if (replyMarkup == "1") // Harvest main menu
+                {
+                    var keyboardMarkup = new InlineKeyboardMarkup();
+                    var button1 = new InlineKeyboardButton("1. Add a new time entry.", "", "1 1", "");
+                    var button2 = new InlineKeyboardButton("2. Edit an existing time entry.", "", "1 2", "");
+                    keyboardMarkup.inline_keyboard = new InlineKeyboardButton[,] { { button1}, { button2 } };
+                    model.reply_markup = keyboardMarkup;
+                }
+                else if (replyMarkup == "1 1") // Harvest, add a new time entry, select a client
+                {
+                    if (harvestClient != null)
+                    {
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        var clients = harvestClient.ListClients().OrderBy(x => x.Name);
+                        var buttonsArray = new InlineKeyboardButton[clients.Count(), 1];
+                        int i = 0;
+                        foreach (var client in clients)
+                        {
+                            var button = new InlineKeyboardButton((i + 1) + ". " + client.Name, "", "1 1 " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
+                }
+                else if (replyMarkupArray.Length == 3)
+                {
+                    if (replyMarkupArray[0] == "1" && replyMarkupArray[1] == "1") // Harvest, add a new time entry, selected a client, select a project.
+                    {
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        int clientIndex = int.Parse(replyMarkupArray[2]) - 1;
+                        var client = harvestClient.ListClients().OrderBy(x => x.Name).ElementAt(clientIndex);
+                        var projects = harvestClient.ListProjects(client.Id);
+                        var buttonsArray = new InlineKeyboardButton[projects.Count(), 1];
+                        int i = 0;
+                        foreach (var project in projects)
+                        {
+                            var button = new InlineKeyboardButton((i + 1) + ". " + project.Name, "", "1 1 " + clientIndex + " " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
                 }
                 /*if (replyMarkup == "mainmenu")
                 {

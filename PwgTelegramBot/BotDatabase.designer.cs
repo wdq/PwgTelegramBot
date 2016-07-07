@@ -33,6 +33,9 @@ namespace PwgTelegramBot
     partial void InsertUserState(UserState instance);
     partial void UpdateUserState(UserState instance);
     partial void DeleteUserState(UserState instance);
+    partial void InsertHarvestAuth(HarvestAuth instance);
+    partial void UpdateHarvestAuth(HarvestAuth instance);
+    partial void DeleteHarvestAuth(HarvestAuth instance);
     #endregion
 		
 		public BotDatabaseDataContext() : 
@@ -70,6 +73,14 @@ namespace PwgTelegramBot
 			get
 			{
 				return this.GetTable<UserState>();
+			}
+		}
+		
+		public System.Data.Linq.Table<HarvestAuth> HarvestAuths
+		{
+			get
+			{
+				return this.GetTable<HarvestAuth>();
 			}
 		}
 	}
@@ -231,6 +242,164 @@ namespace PwgTelegramBot
 					this._IsStateTextEntry = value;
 					this.SendPropertyChanged("IsStateTextEntry");
 					this.OnIsStateTextEntryChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.HarvestAuth")]
+	public partial class HarvestAuth : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _UserId;
+		
+		private string _HarvestCode;
+		
+		private string _HarvestToken;
+		
+		private System.Nullable<System.DateTime> _HarvestTokenExpiration;
+		
+		private string _HarvestRefreshToken;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnUserIdChanging(int value);
+    partial void OnUserIdChanged();
+    partial void OnHarvestCodeChanging(string value);
+    partial void OnHarvestCodeChanged();
+    partial void OnHarvestTokenChanging(string value);
+    partial void OnHarvestTokenChanged();
+    partial void OnHarvestTokenExpirationChanging(System.Nullable<System.DateTime> value);
+    partial void OnHarvestTokenExpirationChanged();
+    partial void OnHarvestRefreshTokenChanging(string value);
+    partial void OnHarvestRefreshTokenChanged();
+    #endregion
+		
+		public HarvestAuth()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UserId", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int UserId
+		{
+			get
+			{
+				return this._UserId;
+			}
+			set
+			{
+				if ((this._UserId != value))
+				{
+					this.OnUserIdChanging(value);
+					this.SendPropertyChanging();
+					this._UserId = value;
+					this.SendPropertyChanged("UserId");
+					this.OnUserIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_HarvestCode", DbType="NVarChar(MAX) NOT NULL", CanBeNull=false)]
+		public string HarvestCode
+		{
+			get
+			{
+				return this._HarvestCode;
+			}
+			set
+			{
+				if ((this._HarvestCode != value))
+				{
+					this.OnHarvestCodeChanging(value);
+					this.SendPropertyChanging();
+					this._HarvestCode = value;
+					this.SendPropertyChanged("HarvestCode");
+					this.OnHarvestCodeChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_HarvestToken", DbType="NVarChar(MAX)")]
+		public string HarvestToken
+		{
+			get
+			{
+				return this._HarvestToken;
+			}
+			set
+			{
+				if ((this._HarvestToken != value))
+				{
+					this.OnHarvestTokenChanging(value);
+					this.SendPropertyChanging();
+					this._HarvestToken = value;
+					this.SendPropertyChanged("HarvestToken");
+					this.OnHarvestTokenChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_HarvestTokenExpiration", DbType="DateTime2")]
+		public System.Nullable<System.DateTime> HarvestTokenExpiration
+		{
+			get
+			{
+				return this._HarvestTokenExpiration;
+			}
+			set
+			{
+				if ((this._HarvestTokenExpiration != value))
+				{
+					this.OnHarvestTokenExpirationChanging(value);
+					this.SendPropertyChanging();
+					this._HarvestTokenExpiration = value;
+					this.SendPropertyChanged("HarvestTokenExpiration");
+					this.OnHarvestTokenExpirationChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_HarvestRefreshToken", DbType="NVarChar(MAX)")]
+		public string HarvestRefreshToken
+		{
+			get
+			{
+				return this._HarvestRefreshToken;
+			}
+			set
+			{
+				if ((this._HarvestRefreshToken != value))
+				{
+					this.OnHarvestRefreshTokenChanging(value);
+					this.SendPropertyChanging();
+					this._HarvestRefreshToken = value;
+					this.SendPropertyChanged("HarvestRefreshToken");
+					this.OnHarvestRefreshTokenChanged();
 				}
 			}
 		}
