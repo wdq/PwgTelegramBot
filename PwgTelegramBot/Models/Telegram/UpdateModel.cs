@@ -38,6 +38,15 @@ namespace PwgTelegramBot.Models.Telegram
                 // EditedMessage property is not in the json object
             }
 
+            try
+            {
+                model.CallbackQuery = CallbackQueryModel.FromJson(json.callback_query);
+            }
+            catch (Exception exception)
+            {
+                // CallbackQuery property is not in the json object
+            }
+
             return model;
         }
     }
