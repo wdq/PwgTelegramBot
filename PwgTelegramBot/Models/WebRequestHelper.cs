@@ -58,6 +58,15 @@ namespace PwgTelegramBot.Models
             public string RefreshToken { get; set; }
         }
 
+        public class HarvestNewDailyEntry
+        {
+            public string notes { get; set; }
+            public double hours { get; set; }
+            public string project_id { get; set; }
+            public string task_id { get; set; }
+            public string spent_at { get; set; }
+        }
+
         public static HarvestOAuthResponse PostHarvestOAuth(string authorizationCode, bool isRefresh)
         {
             string url = "https://" + ConfigurationManager.AppSettings["HarvestAccountName"] + ".harvestapp.com/oauth2/token";
@@ -113,6 +122,42 @@ namespace PwgTelegramBot.Models
 
             return model;
         }
+
+
+        public static dynamic PostHarvestDailyEntry(string accessToken, string notes, double hours, string projectId, string taskId, DateTime spentAt)
+        {
+            string url = "https://" + ConfigurationManager.AppSettings["HarvestAccountName"] + ".harvestapp.com/daily/add?access_token=" + accessToken;
+            
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.Accept = "application/json";
+            request.Method = "POST";
+            request.ContentType = "application/json";
+
+            var entry = new HarvestNewDailyEntry();
+            entry.notes = notes;
+            entry.hours = hours;
+            entry.project_id = projectId;
+            entry.task_id = taskId;
+            entry.spent_at = spentAt.ToString("yyyy-M-d");
+            
+            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+            {
+                string postJson = JsonConvert.SerializeObject(entry, new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    DefaultValueHandling = DefaultValueHandling.Ignore
+                });
+                streamWriter.Write(postJson);
+            }
+            var response = (HttpWebResponse)request.GetResponse();
+            Stream stream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+            String responseString = reader.ReadToEnd();
+            dynamic json = JsonConvert.DeserializeObject(responseString);
+
+            return json;
+        }
+
 
 
         public static dynamic GetTrackerJson(string url)

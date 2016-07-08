@@ -9,6 +9,7 @@ using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using Harvest.Net;
+using Harvest.Net.Models;
 using Harvest.Net.Models.Interfaces;
 using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
@@ -272,6 +273,76 @@ namespace PwgTelegramBot.Controllers
                                                 HarvestRestClient harvestClient = GetHarvestClient(database, userId);
                                                 var messageSent = MessageModel.SendMessage(chatId,
                                                     "Select a task:", "", null, null, null, "1 1 " + stateArray[2] + " " + stateArray[3], harvestClient);
+                                            }
+                                        }
+                                        else if (stateArray.Length == 5)
+                                        {
+                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, selected a project, selected a task, enter notes.
+                                            {
+                                                userState.State += " 1"; // Entering the first text field
+                                                userState.IsStateTextEntry = true;
+                                                database.SubmitChanges();
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                    "Type in the note for the time entry and press enter.", "", null, null, null, null, null);
+                                            }
+                                        }
+                                        else if (stateArray.Length == 6)
+                                        {
+                                            if (stateArray[0] == "1" && stateArray[1] == "1" && stateArray[5] == "1") // Harvest, add a new time entry, selected a client, selected a project, selected a task, entered note, enter hours.
+                                            {
+                                                string userInputText = update.Message.Text;
+
+                                                var userEntries = database.UserTextEntries.Where(x => x.UserId == userId); // Get rid of previous user text entries that may exist from past sessions.
+                                                database.UserTextEntries.DeleteAllOnSubmit(userEntries);
+                                                database.SubmitChanges();
+
+                                                var userEntry = new UserTextEntry(); // Add user text input to the database
+                                                userEntry.Id = Guid.NewGuid();
+                                                userEntry.UserId = userId;
+                                                userEntry.EntryIndex = 1;
+                                                userEntry.EntryText = userInputText;
+                                                database.UserTextEntries.InsertOnSubmit(userEntry);
+                                                database.SubmitChanges();
+
+                                                userState.State = userState.State.Remove(userState.State.Length - 1, 1) + "2"; // Entering the second text field
+                                                userState.IsStateTextEntry = true;
+                                                database.SubmitChanges();
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                    "Type in the hours for the time entry and press enter.", "", null, null, null, null, null);
+                                            }
+                                            else if (stateArray[0] == "1" && stateArray[1] == "1" && stateArray[5] == "2") // Harvest, add a new time entry, selected a client, selected a project, selected a task, entered note, entered hours, done.
+                                            {
+                                                var harvestClient = GetHarvestClient(database, userId);
+                                                int clientIndex = int.Parse(stateArray[2]) - 1;
+                                                int projectIndex = int.Parse(stateArray[3]) - 1;
+                                                int taskIndex = int.Parse(stateArray[4]) - 1;
+                                                var client = harvestClient.ListClients().OrderBy(x => x.Name).ElementAt(clientIndex);
+                                                var project = harvestClient.ListProjects(client.Id).OrderBy(x => x.Name).ElementAt(projectIndex);
+                                                var taskAssignments = harvestClient.ListTaskAssignments(project.Id);
+                                                List<Task> tasks = new List<Task>();
+                                                foreach (var taskAssignment in taskAssignments)
+                                                {
+                                                    var newTask = harvestClient.Task(taskAssignment.TaskId);
+                                                    tasks.Add(newTask);
+                                                }
+                                                tasks = tasks.OrderBy(x => x.Name).ToList();
+                                                var task = tasks.ElementAt(taskIndex);
+
+                                                string userInputText = update.Message.Text;
+
+                                                var previousUserEntry = database.UserTextEntries.FirstOrDefault(x => x.UserId == userId && x.EntryIndex == 1);
+
+                                                userState.State = userState.State.Remove(userState.State.Length - 1, 1) + "2"; // Entering the second text field
+                                                userState.IsStateTextEntry = false;
+                                                database.SubmitChanges();
+
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                    "Saving time entry for " + userInputText + " hours, with a note of: " + previousUserEntry.EntryText, "", null, null, null, null, null);
+
+                                                //var newEntry = harvestClient.CreateDaily(DateTime.Now, project.Id, task.Id, decimal.Parse(userInputText), previousUserEntry.EntryText, null);
+                                                var newEntry = WebRequestHelper.PostHarvestDailyEntry(database.HarvestAuths.FirstOrDefault(x => x.UserId == userId).HarvestToken, previousUserEntry.EntryText, double.Parse(userInputText), project.Id.ToString(), task.Id.ToString(), DateTime.Today);
+                                                var messageSent2 = MessageModel.SendMessage(chatId,
+                                                    "Time entry has been saved.", "", null, null, null, null, null);
                                             }
                                         }
                                     }

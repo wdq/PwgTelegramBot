@@ -19,4 +19,12 @@
       <Column Name="HarvestRefreshToken" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
     </Type>
   </Table>
+  <Table Name="dbo.UserTextEntry" Member="UserTextEntries">
+    <Type Name="UserTextEntry">
+      <Column Name="Id" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="UserId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="EntryIndex" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="EntryText" Type="System.String" DbType="NVarChar(MAX) NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
 </Database>

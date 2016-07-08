@@ -36,6 +36,9 @@ namespace PwgTelegramBot
     partial void InsertHarvestAuth(HarvestAuth instance);
     partial void UpdateHarvestAuth(HarvestAuth instance);
     partial void DeleteHarvestAuth(HarvestAuth instance);
+    partial void InsertUserTextEntry(UserTextEntry instance);
+    partial void UpdateUserTextEntry(UserTextEntry instance);
+    partial void DeleteUserTextEntry(UserTextEntry instance);
     #endregion
 		
 		public BotDatabaseDataContext() : 
@@ -81,6 +84,14 @@ namespace PwgTelegramBot
 			get
 			{
 				return this.GetTable<HarvestAuth>();
+			}
+		}
+		
+		public System.Data.Linq.Table<UserTextEntry> UserTextEntries
+		{
+			get
+			{
+				return this.GetTable<UserTextEntry>();
 			}
 		}
 	}
@@ -400,6 +411,140 @@ namespace PwgTelegramBot
 					this._HarvestRefreshToken = value;
 					this.SendPropertyChanged("HarvestRefreshToken");
 					this.OnHarvestRefreshTokenChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.UserTextEntry")]
+	public partial class UserTextEntry : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private System.Guid _Id;
+		
+		private int _UserId;
+		
+		private int _EntryIndex;
+		
+		private string _EntryText;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnIdChanging(System.Guid value);
+    partial void OnIdChanged();
+    partial void OnUserIdChanging(int value);
+    partial void OnUserIdChanged();
+    partial void OnEntryIndexChanging(int value);
+    partial void OnEntryIndexChanged();
+    partial void OnEntryTextChanging(string value);
+    partial void OnEntryTextChanged();
+    #endregion
+		
+		public UserTextEntry()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Id", DbType="UniqueIdentifier NOT NULL", IsPrimaryKey=true)]
+		public System.Guid Id
+		{
+			get
+			{
+				return this._Id;
+			}
+			set
+			{
+				if ((this._Id != value))
+				{
+					this.OnIdChanging(value);
+					this.SendPropertyChanging();
+					this._Id = value;
+					this.SendPropertyChanged("Id");
+					this.OnIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UserId", DbType="Int NOT NULL")]
+		public int UserId
+		{
+			get
+			{
+				return this._UserId;
+			}
+			set
+			{
+				if ((this._UserId != value))
+				{
+					this.OnUserIdChanging(value);
+					this.SendPropertyChanging();
+					this._UserId = value;
+					this.SendPropertyChanged("UserId");
+					this.OnUserIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EntryIndex", DbType="Int NOT NULL")]
+		public int EntryIndex
+		{
+			get
+			{
+				return this._EntryIndex;
+			}
+			set
+			{
+				if ((this._EntryIndex != value))
+				{
+					this.OnEntryIndexChanging(value);
+					this.SendPropertyChanging();
+					this._EntryIndex = value;
+					this.SendPropertyChanged("EntryIndex");
+					this.OnEntryIndexChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EntryText", DbType="NVarChar(MAX) NOT NULL", CanBeNull=false)]
+		public string EntryText
+		{
+			get
+			{
+				return this._EntryText;
+			}
+			set
+			{
+				if ((this._EntryText != value))
+				{
+					this.OnEntryTextChanging(value);
+					this.SendPropertyChanging();
+					this._EntryText = value;
+					this.SendPropertyChanged("EntryText");
+					this.OnEntryTextChanged();
 				}
 			}
 		}
