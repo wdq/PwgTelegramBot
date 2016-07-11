@@ -1,0 +1,21 @@
+﻿
+@{
+    ViewBag.Title = "PivotalAuthRedirect";
+}
+
+<h2>PivotalAuthRedirect</h2>
+
+<script type="text/javascript">
+    $(document)
+        .ready(function() {
+            $.ajax({
+                url: "https://www.pivotaltracker.com/services/v5/me",
+                method: "GET",
+                dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+        });
+
+</script>

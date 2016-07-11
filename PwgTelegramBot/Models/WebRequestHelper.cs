@@ -8,6 +8,7 @@ using System.Text;
 using System.Web;
 using System.Web.Script.Serialization;
 using Newtonsoft.Json;
+using PwgTelegramBot.Models.Telegram;
 
 namespace PwgTelegramBot.Models
 {
@@ -71,56 +72,63 @@ namespace PwgTelegramBot.Models
         {
             string url = "https://" + ConfigurationManager.AppSettings["HarvestAccountName"] + ".harvestapp.com/oauth2/token";
 
-
-            var harvestOAuthRequest = new HarvestOAuthRequest();
-            harvestOAuthRequest.client_id = ConfigurationManager.AppSettings["HarvestClientID"];
-            harvestOAuthRequest.client_secret = ConfigurationManager.AppSettings["HarvestClientSecret"];
-            harvestOAuthRequest.redirect_uri = "https://pwgwebhooktestbot.quade.co/PwgTelegramBot/Bot/HarvestAuthRedirect";
-            url += "?client_id=" + harvestOAuthRequest.client_id;
-            url += "&client_secret=" + harvestOAuthRequest.client_secret;
-            url += "&redirect_uri=" + harvestOAuthRequest.redirect_uri;
-
-            if (isRefresh)
+            try
             {
-                harvestOAuthRequest.refresh_token = authorizationCode;
-                harvestOAuthRequest.grant_type = "refresh_token";
-                url += "&refresh_token=" + authorizationCode;
-                url += "&grant_type=" + harvestOAuthRequest.grant_type;
+                var harvestOAuthRequest = new HarvestOAuthRequest();
+                harvestOAuthRequest.client_id = ConfigurationManager.AppSettings["HarvestClientID"];
+                harvestOAuthRequest.client_secret = ConfigurationManager.AppSettings["HarvestClientSecret"];
+                harvestOAuthRequest.redirect_uri = "https://pwgwebhooktestbot.quade.co/PwgTelegramBot/Bot/HarvestAuthRedirect";
+                url += "?client_id=" + harvestOAuthRequest.client_id;
+                url += "&client_secret=" + harvestOAuthRequest.client_secret;
+                url += "&redirect_uri=" + harvestOAuthRequest.redirect_uri;
+
+                if (isRefresh)
+                {
+                    harvestOAuthRequest.refresh_token = authorizationCode;
+                    harvestOAuthRequest.grant_type = "refresh_token";
+                    url += "&refresh_token=" + authorizationCode;
+                    url += "&grant_type=" + harvestOAuthRequest.grant_type;
+                }
+                else
+                {
+                    harvestOAuthRequest.code = authorizationCode;
+                    harvestOAuthRequest.grant_type = "authorization_code";
+                    url += "&code=" + authorizationCode;
+                    url += "&grant_type=" + harvestOAuthRequest.grant_type;
+                }
+
+
+                var request = (HttpWebRequest)WebRequest.Create(url);
+                request.Accept = "application/json";
+                request.Method = "POST";
+                request.ContentType = "application/x-www-form-urlencoded";
+
+                /*using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+                {
+                    streamWriter.Write(harvestOAuthRequest);
+                }*/
+
+                var response = (HttpWebResponse)request.GetResponse();
+                Stream stream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+                String responseString = reader.ReadToEnd();
+                dynamic json = JsonConvert.DeserializeObject(responseString);
+
+                //return json;
+
+                HarvestOAuthResponse model = new HarvestOAuthResponse();
+                model.TokenType = json.token_type;
+                model.Expiration = DateTime.Now.AddSeconds((double)json.expires_in);
+                model.AccessToken = json.access_token;
+                model.RefreshToken = json.refresh_token;
+
+                return model;
             }
-            else
+            catch (Exception exception)
             {
-                harvestOAuthRequest.code = authorizationCode;
-                harvestOAuthRequest.grant_type = "authorization_code";
-                url += "&code=" + authorizationCode;
-                url += "&grant_type=" + harvestOAuthRequest.grant_type;
+                var exceptionMessage = MessageModel.SendMessage(47347293, "Exception in WebRequestHelper.cs PostHarvestOAuth(): " + exception.Message, "", null, null, null, null, null);
             }
-
-
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Accept = "application/json";
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded";
-
-            /*using (var streamWriter = new StreamWriter(request.GetRequestStream()))
-            {
-                streamWriter.Write(harvestOAuthRequest);
-            }*/
-
-            var response = (HttpWebResponse)request.GetResponse();
-            Stream stream = response.GetResponseStream();
-            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-            String responseString = reader.ReadToEnd();
-            dynamic json = JsonConvert.DeserializeObject(responseString);
-
-            //return json;
-
-            HarvestOAuthResponse model = new HarvestOAuthResponse();
-            model.TokenType = json.token_type;
-            model.Expiration = DateTime.Now.AddSeconds((double)json.expires_in);
-            model.AccessToken = json.access_token;
-            model.RefreshToken = json.refresh_token;
-
-            return model;
+            return new HarvestOAuthResponse();
         }
 
 

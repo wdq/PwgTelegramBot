@@ -16,11 +16,13 @@ using Newtonsoft.Json;
 using PwgTelegramBot.Models;
 using PwgTelegramBot.Models.Telegram;
 using PwgTelegramBot.Models.Tracker.Projects;
+using RestSharp.Extensions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using InlineKeyboardButton = PwgTelegramBot.Models.Telegram.InlineKeyboardButton;
 using IReplyMarkup = Telegram.Bot.Types.ReplyMarkups.IReplyMarkup;
+using System.Data.Entity;
 
 namespace PwgTelegramBot.Controllers
 {
@@ -32,6 +34,31 @@ namespace PwgTelegramBot.Controllers
             return View();
         }
 
+        [HttpPost]
+        public ActionResult BotCron()
+        {
+            var test = new BotDatabase();
+
+            using (var database = new BotDatabase())
+            {
+                var expiredAuths = database.HarvestAuths.Where(x => x.HarvestTokenExpiration < DateTime.Now);
+                foreach (var expiredAuth in expiredAuths)
+                {
+                    var token = WebRequestHelper.PostHarvestOAuth(expiredAuth.HarvestCode, true);
+                    expiredAuth.HarvestTokenExpiration = token.Expiration;
+                    expiredAuth.HarvestRefreshToken = token.RefreshToken;
+                    expiredAuth.HarvestToken = token.AccessToken;
+                    
+                    database.SaveChanges();
+                }
+            }
+            JsonResult jsonResult = new JsonResult();
+            jsonResult.Data = "ok";
+            jsonResult.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+
+            return jsonResult;
+        }
+
         public ActionResult HarvestAuthRedirect()
         {
             string authenticationCode = Request.QueryString["code"];
@@ -39,7 +66,12 @@ namespace PwgTelegramBot.Controllers
             return View((object) authenticationCode);
         }
 
-        public HarvestRestClient GetHarvestClient(BotDatabaseDataContext database, int userId)
+        public ActionResult PivotalAuthRedirect()
+        {
+            return View();
+        }
+
+        public HarvestRestClient GetHarvestClient(BotDatabase database, int userId)
         {
             var harvestAuth = database.HarvestAuths.FirstOrDefault(x => x.UserId == userId);
             var token = new WebRequestHelper.HarvestOAuthResponse();
@@ -52,9 +84,8 @@ namespace PwgTelegramBot.Controllers
                 harvestAuth.HarvestRefreshToken = token.RefreshToken;
                 harvestAuth.HarvestToken = token.AccessToken;
 
-                database.SubmitChanges();
+                database.SaveChanges();
             }
-
             HarvestRestClient harvestClient = new HarvestRestClient(ConfigurationManager.AppSettings["HarvestAccountName"], ConfigurationManager.AppSettings["HarvestClientID"], ConfigurationManager.AppSettings["HarvestClientSecret"], harvestAuth.HarvestToken);
             return harvestClient;
         }
@@ -94,9 +125,26 @@ namespace PwgTelegramBot.Controllers
                 userId = update.CallbackQuery.From.Id;
             }
 
-            if (userId != 0)
+
+            bool isValid = false;
+            if (update.Message != null)
             {
-                using(var database = new BotDatabaseDataContext())
+                if (update.Message.Text != null)
+                {
+                    isValid = true;
+                }
+            }
+            else if (update.CallbackQuery != null)
+            {
+                if (update.CallbackQuery.Data != null)
+                {
+                    isValid = true;
+                }
+            }
+
+            if (userId != 0 && isValid)
+            {
+                using (var database = new BotDatabase())
                 {
                     var userState = database.UserStates.FirstOrDefault(x => x.UserId == userId);
                     if (userState == null) // User doesn't have a state in the database, add the user to the database, default to a user without permissions.
@@ -108,8 +156,16 @@ namespace PwgTelegramBot.Controllers
                         userState.IsAdmin = false;
                         userState.IsStateTextEntry = false;
                         userState.Notes = "New unapproved user " + DateTime.Now + ".";
-                        database.UserStates.InsertOnSubmit(userState);
-                        database.SubmitChanges();
+                        if (update.Message != null)
+                        {
+                            userState.ChatId = update.Message.Chat.Id;
+                        }
+                        else if (update.CallbackQuery != null)
+                        {
+                            userState.ChatId = update.CallbackQuery.Message.Chat.Id;
+                        }
+                        database.UserStates.Add(userState);
+                        database.SaveChanges();
                     }
                     if (userState.Approved.HasValue)
                     {
@@ -121,11 +177,15 @@ namespace PwgTelegramBot.Controllers
                             {
                                 messageText = update.Message.Text;
                                 chatId = update.Message.Chat.Id;
+                                userState.ChatId = chatId;
+                                database.SaveChanges();
                             }
                             else if (update.CallbackQuery != null)
                             {
                                 messageText = update.CallbackQuery.Data;
                                 chatId = update.CallbackQuery.Message.Chat.Id;
+                                userState.ChatId = chatId;
+                                database.SaveChanges();
                             }
 
 
@@ -136,9 +196,9 @@ namespace PwgTelegramBot.Controllers
                             // * Text 
                             // * A specific command starting like /command
 
-                            if (messageText.Length > "/authenticateharvest ".Length) // Associate a harvest authentication token with a user
+                            if (messageText.Length > "/authenticateharvest ".Length) // Works for havest and pivotal since the commands are the same length
                             {
-                                if (messageText.Substring(0, "/authenticateharvest ".Length) == "/authenticateharvest ")
+                                if (messageText.Substring(0, "/authenticateharvest ".Length) == "/authenticateharvest ") // Associate a harvest authentication token with a user
                                 {
                                     string harvestAuthenticationCode = messageText.Substring("/authenticateharvest ".Length, (messageText.Length - "/authenticateharvest ".Length)).Trim();
                                     var harvestAuth = database.HarvestAuths.FirstOrDefault(x => x.UserId == userId); // Check to see if user already has code in database
@@ -151,19 +211,39 @@ namespace PwgTelegramBot.Controllers
                                         harvestAuth = new HarvestAuth();
                                         harvestAuth.UserId = userId;
                                         harvestAuth.HarvestCode = harvestAuthenticationCode;
-                                        database.HarvestAuths.InsertOnSubmit(harvestAuth);
+                                        database.HarvestAuths.Add(harvestAuth);
                                     }
-                                    database.SubmitChanges();
+                                    database.SaveChanges();
 
                                     var postAuth = WebRequestHelper.PostHarvestOAuth(harvestAuthenticationCode, false);
 
                                     harvestAuth.HarvestRefreshToken = postAuth.RefreshToken;
                                     harvestAuth.HarvestToken = postAuth.AccessToken;
                                     harvestAuth.HarvestTokenExpiration = postAuth.Expiration;
-                                    database.SubmitChanges();
+                                    database.SaveChanges();
 
                                     var messageSent = MessageModel.SendMessage(chatId,
                                         "You have successfully connected your Harvest account to your Telegram account.", "", null, null, null, null, null);
+                                }
+                                else if (messageText.Substring(0, "/authenticatepivotal ".Length) == "/authenticatepivotal ") // Associate a pivotal API token with a user
+                                {
+                                    string pivotalAPIToken = messageText.Substring("/authenticatepivotal ".Length, (messageText.Length - "/authenticatepivotal ".Length)).Trim();
+                                    var pivotalAuth = database.PivotalAuths.FirstOrDefault(x => x.UserId == userId);
+                                    if (pivotalAuth != null) // If the user exists, then just update the token
+                                    {
+                                        pivotalAuth.ApiToken = pivotalAPIToken;
+                                    }
+                                    else // If the user doesn't exist, add a new row
+                                    {
+                                        pivotalAuth = new PivotalAuth();
+                                        pivotalAuth.UserId = userId;
+                                        pivotalAuth.ApiToken = pivotalAPIToken;
+                                        database.PivotalAuths.Add(pivotalAuth);
+                                    }
+                                    database.SaveChanges();
+
+                                    var messageSent = MessageModel.SendMessage(chatId,
+                                        "You have successfully connected your Pivotal Tracker account to your Telegram account.", "", null, null, null, null, null);
                                 }
                             }
 
@@ -180,6 +260,61 @@ namespace PwgTelegramBot.Controllers
                                     {
                                         userState.State = "0"; 
 
+                                    } 
+                                    else if (messageText.Substring(0, 1) == "/") // User is entering a command
+                                    {
+                                        userState.State = "-1"; // The -1 state is the command mode
+                                        
+                                        var user = database.UserStates.FirstOrDefault(x => x.UserId == userId);
+                                        if (user.IsAdmin.HasValue)
+                                        {
+                                            if (user.IsAdmin.Value) // User is an admin
+                                            {
+                                                var commandParts = messageText.Split(' ');
+                                                if (commandParts[0] == "/approveuser") // User wants to approve another user
+                                                {
+                                                    var userToApprove = commandParts[1]; // Get the Telegram ID of the user to be approved from the command
+                                                    var databaseUser = database.UserStates.FirstOrDefault(x => x.UserId == int.Parse(userToApprove)); // Get the database row associated with that user
+                                                    databaseUser.Approved = true; // Approve the user
+                                                    if (commandParts.Length > 2)
+                                                    {
+                                                        string notesField = "";
+                                                        for (int i = 2; i < commandParts.Length; i++)
+                                                        {
+                                                            notesField += commandParts[i] + " ";
+                                                        }
+                                                        databaseUser.Notes = notesField; // If there are enough command arguments, then set the third one to the notes field in the database
+                                                    }
+                                                    database.SaveChanges(); // Submit the database changes
+                                                    var messageSent = MessageModel.SendMessage(chatId,
+                                                        "User " + userToApprove + " has been approved.", "", null, null, null, null, null); // Notify user that it worked.
+                                                    if (databaseUser.ChatId.HasValue)
+                                                    {
+                                                    var messageSent2 = MessageModel.SendMessage(databaseUser.ChatId.Value,
+                                                        "You have been approved, plase type in /start to get started.", "", null, null, null, null, null); // Notify approved user that it worked.
+                                                    }
+
+                                                }
+                                                else if (commandParts[0] == "/unapproveuser") // User wants to unapprove another user
+                                                {
+                                                    var userToApprove = commandParts[1]; // Get the Telegram ID of the user to be unapprove from the command
+                                                    var databaseUser = database.UserStates.FirstOrDefault(x => x.UserId == int.Parse(userToApprove)); // Get the database row associated with that user
+                                                    databaseUser.Approved = false; // Unapprove the user
+                                                    if (commandParts.Length > 2)
+                                                    {
+                                                        string notesField = "";
+                                                        for (int i = 2; i < commandParts.Length; i++)
+                                                        {
+                                                            notesField += commandParts[i] + " ";
+                                                        }
+                                                        databaseUser.Notes = notesField; // If there are enough command arguments, then set the third one to the notes field in the database
+                                                    }
+                                                    database.SaveChanges(); // Submit the database changes
+                                                    var messageSent = MessageModel.SendMessage(chatId,
+                                                        "User " + userToApprove + " has been unapproved.", "", null, null, null, null, null); // Notify user that it worked.
+                                                }
+                                            }
+                                        }
                                     } 
                                     else if (commands.Length > 1) // More than one command entered, overwrite previous state
                                     {
@@ -198,7 +333,7 @@ namespace PwgTelegramBot.Controllers
                                     }
                                 }
                             }
-                            database.SubmitChanges();
+                            database.SaveChanges();
 
                             if (userState.State == "0") // Main menu
                             {
@@ -228,11 +363,6 @@ namespace PwgTelegramBot.Controllers
                                             {
                                                 var messageSent = MessageModel.SendMessage(chatId,
                                                     "Select a Harvest action:", "", null, null, null, "1", null);
-                                            }
-                                            else if (stateArray[0] == "2") // Pivotal
-                                            {
-                                                var messageSent = MessageModel.SendMessage(chatId,
-                                                        "Pivotal Tracker isn't supported yet.", "", null, null, null, null, null);
                                             }
                                         }
                                         else if (stateArray.Length == 2)
@@ -281,7 +411,7 @@ namespace PwgTelegramBot.Controllers
                                             {
                                                 userState.State += " 1"; // Entering the first text field
                                                 userState.IsStateTextEntry = true;
-                                                database.SubmitChanges();
+                                                database.SaveChanges();
                                                 var messageSent = MessageModel.SendMessage(chatId,
                                                     "Type in the note for the time entry and press enter.", "", null, null, null, null, null);
                                             }
@@ -293,20 +423,20 @@ namespace PwgTelegramBot.Controllers
                                                 string userInputText = update.Message.Text;
 
                                                 var userEntries = database.UserTextEntries.Where(x => x.UserId == userId); // Get rid of previous user text entries that may exist from past sessions.
-                                                database.UserTextEntries.DeleteAllOnSubmit(userEntries);
-                                                database.SubmitChanges();
+                                                database.UserTextEntries.RemoveRange(userEntries);
+                                                database.SaveChanges();
 
                                                 var userEntry = new UserTextEntry(); // Add user text input to the database
                                                 userEntry.Id = Guid.NewGuid();
                                                 userEntry.UserId = userId;
                                                 userEntry.EntryIndex = 1;
                                                 userEntry.EntryText = userInputText;
-                                                database.UserTextEntries.InsertOnSubmit(userEntry);
-                                                database.SubmitChanges();
+                                                database.UserTextEntries.Add(userEntry);
+                                                database.SaveChanges();
 
                                                 userState.State = userState.State.Remove(userState.State.Length - 1, 1) + "2"; // Entering the second text field
                                                 userState.IsStateTextEntry = true;
-                                                database.SubmitChanges();
+                                                database.SaveChanges();
                                                 var messageSent = MessageModel.SendMessage(chatId,
                                                     "Type in the hours for the time entry and press enter.", "", null, null, null, null, null);
                                             }
@@ -334,7 +464,7 @@ namespace PwgTelegramBot.Controllers
 
                                                 userState.State = userState.State.Remove(userState.State.Length - 1, 1) + "2"; // Entering the second text field
                                                 userState.IsStateTextEntry = false;
-                                                database.SubmitChanges();
+                                                database.SaveChanges();
 
                                                 var messageSent = MessageModel.SendMessage(chatId,
                                                     "Saving time entry for " + userInputText + " hours, with a note of: " + previousUserEntry.EntryText, "", null, null, null, null, null);
@@ -349,13 +479,32 @@ namespace PwgTelegramBot.Controllers
                                 }
                                 else if (userState.State.Substring(0, 1) == "2") // Pivotal
                                 {
-    
+                                    var pivotalAuth = database.PivotalAuths.FirstOrDefault(x => x.UserId == userId);
+                                    if (pivotalAuth == null) // User isn't authenticated with Pivotal, ask them to authenticate
+                                    {
+                                        var messageSent = MessageModel.SendMessage(chatId, "You haven't linked your Pivotal Tracker account with your Telegram account.", "", null, null, null, null, null);
+                                        var messageSent2 = MessageModel.SendMessage(chatId, "While signed into your Pivotal account follow this link: https://www.pivotaltracker.com/profile", "", null, null, null, null, null);
+                                        var messageSent3 = MessageModel.SendMessage(chatId, "Find your API token (or create new token) and then reply with a message like the following:", "", null, null, null, null, null);
+                                        var messageSent4 = MessageModel.SendMessage(chatId, "/authenticatepivotal API_TOKEN", "", null, null, null, null, null);
+                                    }
+                                    else
+                                    {
+                                        string[] stateArray = userState.State.Split(' ');
+                                        if (stateArray.Length == 1)
+                                        {
+                                            if (stateArray[0] == "2") // Pivotal
+                                            {
+                                                var messageSent = MessageModel.SendMessage(chatId,
+                                                        "Stuff.", "", null, null, null, null, null);
+                                            }
+                                        }
+                                    }
                                 }
 
                                 //var messageSent = MessageModel.SendMessage(chatId,
                                 //    "Your state is: " + userState.State, "", null, null, null, null);
                             }
-                            database.SubmitChanges();
+                            database.SaveChanges();
                         }
                         else // If the user does not have permission to use the bot: tell the user to message me to request permission. 
                         {

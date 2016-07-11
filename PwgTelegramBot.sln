@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PwgTelegramBot", "PwgTelegramBot\PwgTelegramBot.csproj", "{D343B45D-EA8A-4E69-9CEB-4B00303B9FF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PwgTelegramBotService", "PwgTelegramBotService\PwgTelegramBotService.csproj", "{882560BA-B2F3-43ED-93E8-E1AE5E1474A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D343B45D-EA8A-4E69-9CEB-4B00303B9FF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D343B45D-EA8A-4E69-9CEB-4B00303B9FF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D343B45D-EA8A-4E69-9CEB-4B00303B9FF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{882560BA-B2F3-43ED-93E8-E1AE5E1474A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{882560BA-B2F3-43ED-93E8-E1AE5E1474A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{882560BA-B2F3-43ED-93E8-E1AE5E1474A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{882560BA-B2F3-43ED-93E8-E1AE5E1474A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
