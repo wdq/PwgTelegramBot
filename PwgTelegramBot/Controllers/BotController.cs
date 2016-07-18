@@ -223,7 +223,7 @@ namespace PwgTelegramBot.Controllers
                                     database.SaveChanges();
 
                                     var messageSent = MessageModel.SendMessage(chatId,
-                                        "You have successfully connected your Harvest account to your Telegram account.", "", null, null, null, null, null);
+                                        "You have successfully connected your Harvest account to your Telegram account.", "", null, null, null, null, null, null);
                                 }
                                 else if (messageText.Substring(0, "/authenticatepivotal ".Length) == "/authenticatepivotal ") // Associate a pivotal API token with a user
                                 {
@@ -243,7 +243,7 @@ namespace PwgTelegramBot.Controllers
                                     database.SaveChanges();
 
                                     var messageSent = MessageModel.SendMessage(chatId,
-                                        "You have successfully connected your Pivotal Tracker account to your Telegram account.", "", null, null, null, null, null);
+                                        "You have successfully connected your Pivotal Tracker account to your Telegram account.", "", null, null, null, null, null, null);
                                 }
                             }
 
@@ -287,11 +287,11 @@ namespace PwgTelegramBot.Controllers
                                                     }
                                                     database.SaveChanges(); // Submit the database changes
                                                     var messageSent = MessageModel.SendMessage(chatId,
-                                                        "User " + userToApprove + " has been approved.", "", null, null, null, null, null); // Notify user that it worked.
+                                                        "User " + userToApprove + " has been approved.", "", null, null, null, null, null, null); // Notify user that it worked.
                                                     if (databaseUser.ChatId.HasValue)
                                                     {
                                                     var messageSent2 = MessageModel.SendMessage(databaseUser.ChatId.Value,
-                                                        "You have been approved, plase type in /start to get started.", "", null, null, null, null, null); // Notify approved user that it worked.
+                                                        "You have been approved, plase type in /start to get started.", "", null, null, null, null, null, null); // Notify approved user that it worked.
                                                     }
 
                                                 }
@@ -311,7 +311,7 @@ namespace PwgTelegramBot.Controllers
                                                     }
                                                     database.SaveChanges(); // Submit the database changes
                                                     var messageSent = MessageModel.SendMessage(chatId,
-                                                        "User " + userToApprove + " has been unapproved.", "", null, null, null, null, null); // Notify user that it worked.
+                                                        "User " + userToApprove + " has been unapproved.", "", null, null, null, null, null, null); // Notify user that it worked.
                                                 }
                                             }
                                         }
@@ -338,9 +338,9 @@ namespace PwgTelegramBot.Controllers
                             if (userState.State == "0") // Main menu
                             {
                                 var messageSent = MessageModel.SendMessage(chatId,
-                                    "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null, null);
+                                    "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null, null, null);
                                 var messageSent2 = MessageModel.SendMessage(chatId,
-                                    "Please choose a service to interact with:", "", null, null, null, "0", null);
+                                    "Please choose a service to interact with:", "", null, null, null, "0", null, null);
                             }
                             else
                             {
@@ -350,9 +350,9 @@ namespace PwgTelegramBot.Controllers
                                     if (harvestAuth == null) // User isn't authenticated with Harvest, send them a link to authenticate
                                     {
                                         var messageSent = MessageModel.SendMessage(chatId,
-                                            "You haven't linked your Harvest account with your Telegram account.", "", null, null, null, null, null);
+                                            "You haven't linked your Harvest account with your Telegram account.", "", null, null, null, null, null, null);
                                         var messageSent2 = MessageModel.SendMessage(chatId,
-                                            "Please follow this link to connect your accounts: " + "https://" + ConfigurationManager.AppSettings["HarvestAccountName"] + ".harvestapp.com/oauth2/authorize?client_id=" + ConfigurationManager.AppSettings["HarvestClientID"] + "&redirect_uri=" + "https://pwgwebhooktestbot.quade.co/PwgTelegramBot/Bot/HarvestAuthRedirect" + "&state=optional-csrf-token&response_type=code", "", null, null, null, null, null);
+                                            "Please follow this link to connect your accounts: " + "https://" + ConfigurationManager.AppSettings["HarvestAccountName"] + ".harvestapp.com/oauth2/authorize?client_id=" + ConfigurationManager.AppSettings["HarvestClientID"] + "&redirect_uri=" + "https://pwgwebhooktestbot.quade.co/PwgTelegramBot/Bot/HarvestAuthRedirect" + "&state=optional-csrf-token&response_type=code", "", null, null, null, null, null, null);
                                     }
                                     else // User is authenticated
                                     {
@@ -362,63 +362,63 @@ namespace PwgTelegramBot.Controllers
                                             if (stateArray[0] == "1") // Harvest
                                             {
                                                 var messageSent = MessageModel.SendMessage(chatId,
-                                                    "Select a Harvest action:", "", null, null, null, "1", null);
+                                                    "Select a Harvest action:", "", null, null, null, "1", null, null);
                                             }
                                         }
                                         else if (stateArray.Length == 2)
                                         {
-                                            if (stateArray[0] == "1") // Harvest
+                                            if (stateArray[0] == "1") // Harvest // todo: redundant
                                             {
                                                 HarvestRestClient harvestClient = GetHarvestClient(database, userId);
                                                 if (stateArray[1] == "1") // Harvest, Add a new time entry
                                                 {
                                                     var messageSent = MessageModel.SendMessage(chatId,
-                                                        "Select a client:", "", null, null, null, "1 1", harvestClient);
+                                                        "Select a client:", "", null, null, null, "1 1", harvestClient, null);
 
                                                 }
                                                 else if (stateArray[1] == "2") // Harvest, Edit an existing time entry
                                                 {
                                                     var messageSent = MessageModel.SendMessage(chatId,
-                                                        "Editing time entries isn't supported yet.", "", null, null, null, null, null);
+                                                        "Editing time entries isn't supported yet.", "", null, null, null, null, null, null);
                                                 }
                                             }
-                                            else if (stateArray[0] == "2") // Pivotal
+                                            else if (stateArray[0] == "2") // Pivotal // todo: unreachable
                                             {
                                                 
                                             }
                                         }
                                         else if (stateArray.Length == 3)
                                         {
-                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, select a project.
+                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, select a project. // todo: redundant (first part)
                                             {
                                                 HarvestRestClient harvestClient = GetHarvestClient(database, userId);
                                                 var messageSent = MessageModel.SendMessage(chatId,
-                                                    "Select a project:", "", null, null, null, "1 1 " + stateArray[2], harvestClient);
+                                                    "Select a project:", "", null, null, null, "1 1 " + stateArray[2], harvestClient, null);
                                             }
                                         }
                                         else if (stateArray.Length == 4)
                                         {
-                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, selected a project, select a task.
+                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, selected a project, select a task. // todo: redundant (first part)
                                             {
                                                 HarvestRestClient harvestClient = GetHarvestClient(database, userId);
                                                 var messageSent = MessageModel.SendMessage(chatId,
-                                                    "Select a task:", "", null, null, null, "1 1 " + stateArray[2] + " " + stateArray[3], harvestClient);
+                                                    "Select a task:", "", null, null, null, "1 1 " + stateArray[2] + " " + stateArray[3], harvestClient, null);
                                             }
                                         }
                                         else if (stateArray.Length == 5)
                                         {
-                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, selected a project, selected a task, enter notes.
+                                            if (stateArray[0] == "1" && stateArray[1] == "1") // Harvest, add a new time entry, selected a client, selected a project, selected a task, enter notes. // todo: redundant (first part)
                                             {
                                                 userState.State += " 1"; // Entering the first text field
                                                 userState.IsStateTextEntry = true;
                                                 database.SaveChanges();
                                                 var messageSent = MessageModel.SendMessage(chatId,
-                                                    "Type in the note for the time entry and press enter.", "", null, null, null, null, null);
+                                                    "Type in the note for the time entry and press enter.", "", null, null, null, null, null, null);
                                             }
                                         }
                                         else if (stateArray.Length == 6)
                                         {
-                                            if (stateArray[0] == "1" && stateArray[1] == "1" && stateArray[5] == "1") // Harvest, add a new time entry, selected a client, selected a project, selected a task, entered note, enter hours.
+                                            if (stateArray[0] == "1" && stateArray[1] == "1" && stateArray[5] == "1") // Harvest, add a new time entry, selected a client, selected a project, selected a task, entered note, enter hours. // todo: redundant (first part)
                                             {
                                                 string userInputText = update.Message.Text;
 
@@ -438,9 +438,9 @@ namespace PwgTelegramBot.Controllers
                                                 userState.IsStateTextEntry = true;
                                                 database.SaveChanges();
                                                 var messageSent = MessageModel.SendMessage(chatId,
-                                                    "Type in the hours for the time entry and press enter.", "", null, null, null, null, null);
+                                                    "Type in the hours for the time entry and press enter.", "", null, null, null, null, null, null);
                                             }
-                                            else if (stateArray[0] == "1" && stateArray[1] == "1" && stateArray[5] == "2") // Harvest, add a new time entry, selected a client, selected a project, selected a task, entered note, entered hours, done.
+                                            else if (stateArray[0] == "1" && stateArray[1] == "1" && stateArray[5] == "2") // Harvest, add a new time entry, selected a client, selected a project, selected a task, entered note, entered hours, done. // todo: redundant (first part)
                                             {
                                                 var harvestClient = GetHarvestClient(database, userId);
                                                 int clientIndex = int.Parse(stateArray[2]) - 1;
@@ -467,12 +467,12 @@ namespace PwgTelegramBot.Controllers
                                                 database.SaveChanges();
 
                                                 var messageSent = MessageModel.SendMessage(chatId,
-                                                    "Saving time entry for " + userInputText + " hours, with a note of: " + previousUserEntry.EntryText, "", null, null, null, null, null);
+                                                    "Saving time entry for " + userInputText + " hours, with a note of: " + previousUserEntry.EntryText, "", null, null, null, null, null, null);
 
                                                 //var newEntry = harvestClient.CreateDaily(DateTime.Now, project.Id, task.Id, decimal.Parse(userInputText), previousUserEntry.EntryText, null);
                                                 var newEntry = WebRequestHelper.PostHarvestDailyEntry(database.HarvestAuths.FirstOrDefault(x => x.UserId == userId).HarvestToken, previousUserEntry.EntryText, double.Parse(userInputText), project.Id.ToString(), task.Id.ToString(), DateTime.Today);
                                                 var messageSent2 = MessageModel.SendMessage(chatId,
-                                                    "Time entry has been saved.", "", null, null, null, null, null);
+                                                    "Time entry has been saved.", "", null, null, null, null, null, null);
                                             }
                                         }
                                     }
@@ -482,21 +482,235 @@ namespace PwgTelegramBot.Controllers
                                     var pivotalAuth = database.PivotalAuths.FirstOrDefault(x => x.UserId == userId);
                                     if (pivotalAuth == null) // User isn't authenticated with Pivotal, ask them to authenticate
                                     {
-                                        var messageSent = MessageModel.SendMessage(chatId, "You haven't linked your Pivotal Tracker account with your Telegram account.", "", null, null, null, null, null);
-                                        var messageSent2 = MessageModel.SendMessage(chatId, "While signed into your Pivotal account follow this link: https://www.pivotaltracker.com/profile", "", null, null, null, null, null);
-                                        var messageSent3 = MessageModel.SendMessage(chatId, "Find your API token (or create new token) and then reply with a message like the following:", "", null, null, null, null, null);
-                                        var messageSent4 = MessageModel.SendMessage(chatId, "/authenticatepivotal API_TOKEN", "", null, null, null, null, null);
+                                        var messageSent = MessageModel.SendMessage(chatId, "You haven't linked your Pivotal Tracker account with your Telegram account.", "", null, null, null, null, null, null);
+                                        var messageSent2 = MessageModel.SendMessage(chatId, "While signed into your Pivotal account follow this link: https://www.pivotaltracker.com/profile", "", null, null, null, null, null, null);
+                                        var messageSent3 = MessageModel.SendMessage(chatId, "Find your API token (or create new token) and then reply with a message like the following:", "", null, null, null, null, null, null);
+                                        var messageSent4 = MessageModel.SendMessage(chatId, "/authenticatepivotal API_TOKEN", "", null, null, null, null, null, null);
                                     }
-                                    else
+                                    else // User is authenticated
                                     {
                                         string[] stateArray = userState.State.Split(' ');
                                         if (stateArray.Length == 1)
                                         {
-                                            if (stateArray[0] == "2") // Pivotal
+                                            var messageSent = MessageModel.SendMessage(chatId, "Select a Pivotal Tracker action:", "", null, null, null, "2", null, null);
+                                        }
+                                        else if (stateArray.Length == 2)
+                                        {
+                                            if (stateArray[1] == "1" || stateArray[1] == "2") // Add or edit story
                                             {
-                                                var messageSent = MessageModel.SendMessage(chatId,
-                                                        "Stuff.", "", null, null, null, null, null);
+                                                var messageSent = MessageModel.SendMessage(chatId, "Select a project:", "", null, null, null, "2 " + stateArray[1], null, pivotalAuth.ApiToken);
                                             }
+                                        }
+                                        else if (stateArray.Length == 3)
+                                        {
+                                            if (stateArray[1] == "1") // Add story
+                                            {
+                                                var messageSent = MessageModel.SendMessage(chatId, "Select a story type:", "", null, null, null, "2 " + stateArray[1] + " " + stateArray[2], null, pivotalAuth.ApiToken);
+                                            }
+                                            else if (stateArray[1] == "2") // Edit story
+                                            {
+                                                var messageSent = MessageModel.SendMessage(chatId, "I'm an incomplete bot.", "", null, null, null, null, null, null);
+                                            }
+                                        }
+                                        else if (stateArray.Length == 4)
+                                        {
+                                            if (stateArray[1] == "1") // Add a story
+                                            {
+                                                var messageSent = MessageModel.SendMessage(chatId, "Select the number of points:", "", null, null, null, "2 " + stateArray[1] + " " + stateArray[2] + " " + stateArray[3], null, pivotalAuth.ApiToken);
+                                                
+                                            }
+                                        }
+                                        else if (stateArray.Length == 5)
+                                        {
+                                            if (stateArray[1] == "1") // Add a story
+                                            {
+                                                var messageSent = MessageModel.SendMessage(chatId, "Select a requester:", "", null, null, null, "2 " + stateArray[1] + " " + stateArray[2] + " " + stateArray[3] + " " + stateArray[4], null, pivotalAuth.ApiToken);
+                                            }
+                                        }
+                                        else if (stateArray.Length == 6)
+                                        {
+                                            if (stateArray[1] == "1") // Add a story
+                                            {
+                                                // todo: I'm pretty sure there is some sort of method that will print out each array element with a separator of your choice that can simplify these,  string.Join(" ", stateArray)
+                                                var messageSent = MessageModel.SendMessage(chatId, "Select an owner:", "", null, null, null, "2 " + stateArray[1] + " " + stateArray[2] + " " + stateArray[3] + " " + stateArray[4] + " " + stateArray[5], null, pivotalAuth.ApiToken);
+                                            }
+                                        }
+                                        else if (stateArray.Length == 7)
+                                        {
+                                            if (stateArray[1] == "1") // Add a story
+                                            {
+                                                userState.State += " 1"; // Entering the first text field, title
+                                                userState.IsStateTextEntry = true;
+                                                database.SaveChanges();
+
+                                                var messageSent = MessageModel.SendMessage(chatId, "Type in a story title and then press enter.", "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                            }
+                                        }
+                                        else if (stateArray.Length == 8)
+                                        {
+                                            if (stateArray[1] == "1") // Add a story
+                                            {
+                                                if (stateArray[7] == "1") // Second text field, description
+                                                {
+                                                    userState.State = userState.State.Remove(userState.State.Length - 1, 1) + "2";
+                                                    userState.IsStateTextEntry = true;
+                                                    database.SaveChanges();
+
+                                                    string userInputText = update.Message.Text;
+
+                                                    var userEntries = database.UserTextEntries.Where(x => x.UserId == userId); // Get rid of previous user text entries that may exist from past sessions.
+                                                    database.UserTextEntries.RemoveRange(userEntries);
+                                                    database.SaveChanges();
+
+                                                    var userEntry = new UserTextEntry(); // Add user text input to the database
+                                                    userEntry.Id = Guid.NewGuid();
+                                                    userEntry.UserId = userId;
+                                                    userEntry.EntryIndex = 1; // title
+                                                    userEntry.EntryText = userInputText;
+                                                    database.UserTextEntries.Add(userEntry);
+                                                    database.SaveChanges();
+
+                                                    var messageSent = MessageModel.SendMessage(chatId, "Type in a story description and then press enter.", "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                }
+                                                else if (stateArray[7] == "2")
+                                                {
+                                                    userState.State = userState.State.Remove(userState.State.Length - 1, 1) + "3";
+                                                    userState.IsStateTextEntry = true;
+                                                    database.SaveChanges();
+
+                                                    string userInputText = update.Message.Text;
+
+                                                    var userEntry = new UserTextEntry(); // Add user text input to the database
+                                                    userEntry.Id = Guid.NewGuid();
+                                                    userEntry.UserId = userId;
+                                                    userEntry.EntryIndex = 2; // description
+                                                    userEntry.EntryText = userInputText;
+                                                    database.UserTextEntries.Add(userEntry);
+                                                    database.SaveChanges();
+
+                                                    var messageSent = MessageModel.SendMessage(chatId, "Type in the project tasks, one line per task, and press enter. If you don't want to add any tasks, type in \"None\".", "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                }
+                                                else if (stateArray[7] == "3")
+                                                {
+                                                    userState.State = userState.State.Remove(userState.State.Length - 1, 1) + "4";
+                                                    userState.IsStateTextEntry = false;
+                                                    database.SaveChanges();
+
+                                                    string userInputText = update.Message.Text;
+
+                                                    var userEntry = new UserTextEntry(); // Add user text input to the database
+                                                    userEntry.Id = Guid.NewGuid();
+                                                    userEntry.UserId = userId;
+                                                    userEntry.EntryIndex = 3; // tasks
+                                                    userEntry.EntryText = userInputText;
+                                                    database.UserTextEntries.Add(userEntry);
+                                                    database.SaveChanges();
+
+                                                    var messageSent = MessageModel.SendMessage(chatId, "Select a label:", "", null, null, null, string.Join(" ", stateArray), null, pivotalAuth.ApiToken);
+                                                }
+                                            }
+
+                                        }
+                                        else if (stateArray.Length == 9)
+                                        {
+                                            if (stateArray[1] == "1") // Add a story
+                                            {
+                                                var projects = Models.Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                                                int projectIndex = int.Parse(stateArray[2]) - 1;
+                                                var project = projects.ElementAt(projectIndex);
+                                                int storyTypeIndex = int.Parse(stateArray[3]) - 1;
+                                                string[] possibleTypes = new[] {"feature", "bug", "chore", "release"};
+                                                string storyType = possibleTypes[storyTypeIndex];
+                                                List<string> possiblePoints = project.PointScale.Split(',').ToList();
+                                                int possiblePointIndex = int.Parse(stateArray[4]) - 1;
+                                                possiblePoints.Insert(0, "Unestimated");
+                                                string possiblePoint = possiblePoints.ElementAt(possiblePointIndex);
+                                                var possibleRequesters = Models.Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name);
+                                                int possibleRequestersIndex = int.Parse(stateArray[5]) - 1;
+                                                var possibleRequester = possibleRequesters.ElementAt(possibleRequestersIndex);
+                                                var possibleOwners = Models.Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name).ToList();
+                                                int possibleOwnersIndex = int.Parse(stateArray[6]) - 2; // Not -1 since the first item is No owners, but this array doesn't match that
+                                                var possibleOwner = new Models.Tracker.Projects.ProjectMembership();
+                                                if (possibleOwnersIndex != -1)
+                                                {
+                                                    possibleOwner = possibleOwners.ElementAt(possibleOwnersIndex);
+                                                }
+                                                var possibleLabels = Models.Tracker.Projects.ProjectLabel.GetLabels(project.Id);
+                                                var possibleLabelsIndex = int.Parse(stateArray[8]) - 2; // Not -1, see possibleOwnersIndex
+                                                var possibleLabel = new ProjectLabel();
+                                                if (possibleLabelsIndex != -1)
+                                                {
+                                                    possibleLabel = possibleLabels.ElementAt(possibleLabelsIndex);
+                                                }
+
+                                                var previousUserEntries = database.UserTextEntries.Where(x => x.UserId == userId).ToList();
+                                                var titleEntry = previousUserEntries.FirstOrDefault(x => x.EntryIndex == 1);
+                                                var descriptionEntry = previousUserEntries.FirstOrDefault(x => x.EntryIndex == 2);
+                                                var tasksEntry = previousUserEntries.FirstOrDefault(x => x.EntryIndex == 3);
+
+                                                var messageSent = MessageModel.SendMessage(chatId, "Saving new story with these properties:", "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                var messageSent2 = MessageModel.SendMessage(chatId, "Title: " + titleEntry.EntryText, "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                var messageSent3 = MessageModel.SendMessage(chatId, "Type: " + storyType, "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                var messageSent4 = MessageModel.SendMessage(chatId, "Points: " + possiblePoint, "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                var messageSent5 = MessageModel.SendMessage(chatId, "Requester: " + possibleRequester.Person.Name, "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                var messageSent6 = MessageModel.SendMessage(chatId, "Owner: " + (possibleOwnersIndex != -1 ? possibleOwner.Person.Name : ""), "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                var messageSent7 = MessageModel.SendMessage(chatId, "Description: " + descriptionEntry.EntryText, "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                var messageSent8 = MessageModel.SendMessage(chatId, "Label: " + (possibleLabelsIndex != -1 ? possibleLabel.Name : ""), "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                var messageSent9 = MessageModel.SendMessage(chatId, "Tasks: " + tasksEntry.EntryText, "", null, null, null, null, null, pivotalAuth.ApiToken);
+
+                                                AddStoryModel newStory = new AddStoryModel();
+                                                newStory.name = titleEntry.EntryText;
+                                                newStory.description = descriptionEntry.EntryText;
+                                                newStory.story_type = storyType;
+                                                newStory.current_state = "unscheduled"; // todo: maybe ask user
+                                                if (possiblePoint != "Unestimated")
+                                                {
+                                                    newStory.estimate = float.Parse(possiblePoint); 
+                                                }
+                                                newStory.requested_by_id = possibleRequester.Person.Id;
+                                                if (possibleOwnersIndex != -1)
+                                                {
+                                                    newStory.owner_ids = new[] { possibleOwner.Person.Id };
+                                                }
+                                                if (possibleLabelsIndex != -1)
+                                                {
+                                                    newStory.label_ids = new[] { possibleLabel.Id };
+                                                }
+
+
+                                                var tasksStringArray = tasksEntry.EntryText.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).Where(x => x != "None").ToArray();
+                                                var tasksArrayTemp = new AddTaskModel[tasksStringArray.Length];
+                                                for (int i = 0; i < tasksStringArray.Length; i++)
+                                                {
+                                                    AddTaskModel task = new AddTaskModel();
+                                                    task.description = tasksStringArray[i];
+                                                    task.position = i + 1;
+                                                    tasksArrayTemp[i] = task;
+                                                }
+                                                newStory.tasks = tasksArrayTemp;
+                                                var addedStory = Models.Tracker.Projects.ProjectStory.AddStory(project.Id, newStory);
+
+                                                if (addedStory != null)
+                                                {
+                                                    var messageSent10 = MessageModel.SendMessage(chatId, "Story has been saved successfully: " + "https://www.pivotaltracker.com/story/show/" + addedStory.Id, "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                }
+                                                else
+                                                {
+                                                    var messageSent10 = MessageModel.SendMessage(chatId, "Error saving story." + addedStory.Id, "", null, null, null, null, null, pivotalAuth.ApiToken);
+                                                }
+                                            }
+                                        }
+                                        else if (stateArray.Length == 10)
+                                        {
+
+                                        }
+                                        else if (stateArray.Length == 11)
+                                        {
+
+                                        }
+                                        else if (stateArray.Length == 12)
+                                        {
+                                            
                                         }
                                     }
                                 }
@@ -510,11 +724,11 @@ namespace PwgTelegramBot.Controllers
                         {
                             // todo: the update.Message.Chat.Id may be null
                             var messageSent = MessageModel.SendMessage(update.Message.Chat.Id,
-                                "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null, null);
+                                "Hello, I'm the PWG Telegram Bot.", "", null, null, null, null, null, null);
                             var messageSent2 = MessageModel.SendMessage(update.Message.Chat.Id,
-                                "You do not have permission to use me.", "", null, null, null, null, null);
+                                "You do not have permission to use me.", "", null, null, null, null, null, null);
                             var messageSent3 = MessageModel.SendMessage(update.Message.Chat.Id,
-                                "Please send a message to @quade, containing " + userState.UserId + ", to request permission.", "", null, null, null, null, null);
+                                "Please send a message to @quade, containing " + userState.UserId + ", to request permission.", "", null, null, null, null, null, null);
                         }
                         
                     }

@@ -19,10 +19,11 @@ namespace PwgTelegramBot.Models.Tracker.Projects
         public float estimate { get; set; }
         public DateTime? accepted_at { get; set; }
         public DateTime? deadline { get; set; }
+        public int requested_by_id { get; set; }
         public int[] owner_ids { get; set; }
         public string[] labels { get; set; } // todo: type
         public int[] label_ids { get; set; }
-        public string[] tasks { get; set; } // todo: type
+        public AddTaskModel[] tasks { get; set; }
         public int[] follower_ids { get; set; }
         public string[] comments { get; set; } // todo: type
         public DateTime? created_at { get; set; }
@@ -71,14 +72,10 @@ namespace PwgTelegramBot.Models.Tracker.Projects
         public List<ProjectLabel> Labels { get; set; }
         public int? OwnedById { get; set; }
 
-        public static ProjectStory AddStory(int projectId, string name, string description)
+        public static ProjectStory AddStory(int projectId, AddStoryModel story)
         {
-            AddStoryModel model = new AddStoryModel();
-            model.project_id = projectId;
-            model.name = name;
-            model.description = description;
 
-            string postJson = JsonConvert.SerializeObject(model, new JsonSerializerSettings
+            string postJson = JsonConvert.SerializeObject(story, new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore,
                 DefaultValueHandling = DefaultValueHandling.Ignore
@@ -86,9 +83,9 @@ namespace PwgTelegramBot.Models.Tracker.Projects
 
             dynamic json = WebRequestHelper.PostTrackerJson("https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/stories", postJson);
 
-            ProjectStory story = JsonToStory(json);
+            ProjectStory newStory = JsonToStory(json);
 
-            return story;
+            return newStory;
         }
 
         public static ProjectStory JsonToStory(dynamic json)

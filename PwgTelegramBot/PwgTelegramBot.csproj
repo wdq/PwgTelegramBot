@@ -181,8 +181,10 @@
     <Compile Include="Models\Tracker\Projects\ProjectHistory.cs" />
     <Compile Include="Models\Tracker\Projects\ProjectIteration.cs" />
     <Compile Include="Models\Tracker\Projects\ProjectLabel.cs" />
+    <Compile Include="Models\Tracker\Projects\ProjectMembership.cs" />
     <Compile Include="Models\Tracker\Projects\ProjectRelease.cs" />
     <Compile Include="Models\Tracker\Projects\ProjectStory.cs" />
+    <Compile Include="Models\Tracker\Projects\ProjectTask.cs" />
     <Compile Include="Models\WebRequestHelper.cs" />
     <Compile Include="PivotalAuth.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

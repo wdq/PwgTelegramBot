@@ -126,7 +126,7 @@ namespace PwgTelegramBot.Models
             }
             catch (Exception exception)
             {
-                var exceptionMessage = MessageModel.SendMessage(47347293, "Exception in WebRequestHelper.cs PostHarvestOAuth(): " + exception.Message, "", null, null, null, null, null);
+                var exceptionMessage = MessageModel.SendMessage(47347293, "Exception in WebRequestHelper.cs PostHarvestOAuth(): " + exception.Message, "", null, null, null, null, null, null);
             }
             return new HarvestOAuthResponse();
         }

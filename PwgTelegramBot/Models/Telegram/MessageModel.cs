@@ -66,7 +66,7 @@ namespace PwgTelegramBot.Models.Telegram
 
 
 
-        public static MessageModel SendMessage(int chatId, string text, string parseMode, bool? disableWebPagePreview, bool? disableNotification, int? replyToMessageId, string replyMarkup, HarvestRestClient harvestClient)
+        public static MessageModel SendMessage(int chatId, string text, string parseMode, bool? disableWebPagePreview, bool? disableNotification, int? replyToMessageId, string replyMarkup, HarvestRestClient harvestClient, string pivotalToken)
         {
             SendMessageModel model = new SendMessageModel();
 
@@ -114,6 +114,14 @@ namespace PwgTelegramBot.Models.Telegram
                     keyboardMarkup.inline_keyboard = new InlineKeyboardButton[,] { { button1}, { button2 } };
                     model.reply_markup = keyboardMarkup;
                 }
+                else if (replyMarkup == "2") // Pivotal main menu
+                {
+                    var keyboardMarkup = new InlineKeyboardMarkup();
+                    var button1 = new InlineKeyboardButton("1. Add a new story.", "", "2 1", "");
+                    var button2 = new InlineKeyboardButton("2. Edit an existing story.", "", "2 2", "");
+                    keyboardMarkup.inline_keyboard = new InlineKeyboardButton[,] { { button1 }, { button2 } };
+                    model.reply_markup = keyboardMarkup;
+                }
                 else if (replyMarkup == "1 1") // Harvest, add a new time entry, select a client
                 {
                     if (harvestClient != null)
@@ -125,6 +133,44 @@ namespace PwgTelegramBot.Models.Telegram
                         foreach (var client in clients)
                         {
                             var button = new InlineKeyboardButton((i + 1) + ". " + client.Name, "", "1 1 " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
+                }
+                else if (replyMarkup == "2 1") // Pivotal, add a new story, select a project 
+                {
+                    if (!string.IsNullOrEmpty(pivotalToken) && !string.IsNullOrWhiteSpace(pivotalToken))
+                    {
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        var buttonsArray = new InlineKeyboardButton[projects.Count(), 1];
+                        int i = 0;
+                        foreach (var project in projects)
+                        {
+                            var button = new InlineKeyboardButton((i + 1) + ". " + project.Name, "", "2 1 " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
+                }
+                else if (replyMarkup == "2 2") // Pivotal, edit a story, select a project
+                {
+                    if (!string.IsNullOrEmpty(pivotalToken) && !string.IsNullOrWhiteSpace(pivotalToken))
+                    {
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        var buttonsArray = new InlineKeyboardButton[projects.Count(), 1];
+                        int i = 0;
+                        foreach (var project in projects)
+                        {
+                            var button = new InlineKeyboardButton((i + 1) + ". " + project.Name, "", "2 2 " + (i + 1), "");
                             buttonsArray[i, 0] = button;
                             i++;
                         }
@@ -151,6 +197,17 @@ namespace PwgTelegramBot.Models.Telegram
                         }
 
                         keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
+                    else if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1") // Pivotal, add a new story, selected a project, select a story type
+                    {
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        var button1 = new InlineKeyboardButton("1. Feature", "", "2 1 " + replyMarkupArray[2] + " " + "1", "");
+                        var button2 = new InlineKeyboardButton("2. Bug", "", "2 1 " + replyMarkupArray[2] + " " + "2", "");
+                        var button3 = new InlineKeyboardButton("3. Chore", "", "2 1 " + replyMarkupArray[2] + " " + "3", "");
+                        var button4 = new InlineKeyboardButton("4. Release", "", "2 1 " + replyMarkupArray[2] + " " + "4", "");
+
+                        keyboardMarkup.inline_keyboard = new InlineKeyboardButton[,] { { button1 }, { button2 }, { button3 }, { button4 } };
                         model.reply_markup = keyboardMarkup;
                     }
                 }
@@ -189,9 +246,132 @@ namespace PwgTelegramBot.Models.Telegram
 
                         keyboardMarkup.inline_keyboard = buttonsArray;
                         model.reply_markup = keyboardMarkup;
+                    } else if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1") // Pivotal, add a new story, selected project, selected story type, select points
+                    {
+                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        int projectIndex = int.Parse(replyMarkupArray[2]) - 1;
+                        var project = projects.ElementAt(projectIndex);
+                        List<string> possiblePoints = project.PointScale.Split(',').ToList();
+                        possiblePoints.Insert(0, "Unestimated");
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        var buttonsArray = new InlineKeyboardButton[possiblePoints.Count(), 1];
+                        int i = 0;
+                        foreach (var possiblePoint in possiblePoints)
+                        {
+                            var button = new InlineKeyboardButton((i + 1) + ". " + possiblePoint + " points", "", replyMarkupArray[0] + " " + replyMarkupArray[1] + " " +  replyMarkupArray[2] + " " + replyMarkup[3] + " " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
                     }
-                                                
-                                                
+
+                }
+                else if (replyMarkupArray.Length == 5)
+                {
+                    if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1") // Pivotal, add a new story, selected projected, selected story type, selected points, select requester
+                    {
+                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        int projectIndex = int.Parse(replyMarkupArray[2]) - 1;
+                        var project = projects.ElementAt(projectIndex);
+                        List<string> possiblePoints = project.PointScale.Split(',').ToList();
+                        int possiblePointIndex = int.Parse(replyMarkupArray[4]) - 1;
+                        possiblePoints.Insert(0, "Unestimated");
+                        string possiblePoint = possiblePoints.ElementAt(possiblePointIndex);
+                        var possibleRequesters = Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name);
+
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        var buttonsArray = new InlineKeyboardButton[possibleRequesters.Count(), 1];
+                        int i = 0;
+                        foreach (var possibleRequester in possibleRequesters)
+                        {
+                            var button = new InlineKeyboardButton((i + 1) + ". " + possibleRequester.Person.Name, "", replyMarkupArray[0] + " " + replyMarkupArray[1] + " " + replyMarkupArray[2] + " " + replyMarkup[3] + " " + replyMarkup[4] + " " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
+
+                }
+                else if (replyMarkupArray.Length == 6)
+                {
+                    if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1") // Pivotal, add a new story, selected projected, selected story type, selected points, selected requester, select owner
+                    {
+                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        int projectIndex = int.Parse(replyMarkupArray[2]) - 1;
+                        var project = projects.ElementAt(projectIndex);
+                        List<string> possiblePoints = project.PointScale.Split(',').ToList();
+                        int possiblePointIndex = int.Parse(replyMarkupArray[4]) - 1;
+                        possiblePoints.Insert(0, "Unestimated");
+                        string possiblePoint = possiblePoints.ElementAt(possiblePointIndex);
+                        var possibleRequesters = Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name);
+                        int possibleRequestersIndex = int.Parse(replyMarkupArray[5]) - 1;
+                        var possibleRequester = possibleRequesters.ElementAt(possibleRequestersIndex);
+                        var possibleOwners = Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name).ToList();
+
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        var buttonsArray = new InlineKeyboardButton[possibleOwners.Count() + 1, 1];
+                        int i = 1;
+                        var noneButton = new InlineKeyboardButton("1. None", "", replyMarkupArray[0] + " " + replyMarkupArray[1] + " " + replyMarkupArray[2] + " " + replyMarkup[3] + " " + replyMarkup[4] + " " + replyMarkup[5] + " " + (i + 1), "");
+                        buttonsArray[0, 0] = noneButton;
+                        foreach (var possibleOwner in possibleOwners)
+                        {
+                            var button = new InlineKeyboardButton((i + 1) + ". " + possibleOwner.Person.Name, "", replyMarkupArray[0] + " " + replyMarkupArray[1] + " " + replyMarkupArray[2] + " " + replyMarkup[3] + " " + replyMarkup[4] + " " + replyMarkup[5] + " " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
+                }
+                else if (replyMarkupArray.Length == 7)
+                {
+
+                }
+                else if (replyMarkupArray.Length == 8)
+                {
+                    if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1" && replyMarkupArray[7] == "3")
+                    {
+                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        int projectIndex = int.Parse(replyMarkupArray[2]) - 1;
+                        var project = projects.ElementAt(projectIndex);
+                        var possibleLabels = Tracker.Projects.ProjectLabel.GetLabels(project.Id);
+
+                        var keyboardMarkup = new InlineKeyboardMarkup();
+                        var buttonsArray = new InlineKeyboardButton[possibleLabels.Count() + 1, 1];
+                        int i = 1;
+                        var noneButton = new InlineKeyboardButton("1. None", "", string.Join(" ", replyMarkupArray) + " " + (i + 1), "");
+                        buttonsArray[0, 0] = noneButton;
+                        foreach (var possibleLabel in possibleLabels)
+                        {
+                            var button = new InlineKeyboardButton((i + 1) + ". " + possibleLabel.Name, "", string.Join(" ", replyMarkupArray) + " " + (i + 1), "");
+                            buttonsArray[i, 0] = button;
+                            i++;
+                        }
+
+                        keyboardMarkup.inline_keyboard = buttonsArray;
+                        model.reply_markup = keyboardMarkup;
+                    }
+                }
+                else if (replyMarkupArray.Length == 9)
+                {
+
+                }
+                else if (replyMarkupArray.Length == 10)
+                {
+
+                }
+                else if (replyMarkupArray.Length == 11)
+                {
+
+                }
+                else if (replyMarkupArray.Length == 12)
+                {
+                    
                 }
                 /*if (replyMarkup == "mainmenu")
                 {
