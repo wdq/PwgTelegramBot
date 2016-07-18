@@ -37,10 +37,10 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return membership;
         }
 
-        public static List<ProjectMembership> GetMemberships(string url)
+        public static List<ProjectMembership> GetMemberships(string url, string pivotalTrackerApiToken)
         {
             List<ProjectMembership> memberships = new List<ProjectMembership>();
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json)
             {
                 ProjectMembership membership = JsonToMembership(element);
@@ -50,16 +50,16 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return memberships;
         }
 
-        public static List<ProjectMembership> GetMemberships(int projectId)
+        public static List<ProjectMembership> GetMemberships(int projectId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/memberships";
-            return GetMemberships(url);
+            return GetMemberships(url, pivotalTrackerApiToken);
         }
 
-        public static ProjectMembership GetMembership(int projectId, int membershipId)
+        public static ProjectMembership GetMembership(int projectId, int membershipId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/memberships/" + membershipId;
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             return JsonToMembership(json);
         }
 

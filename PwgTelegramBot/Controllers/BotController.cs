@@ -489,10 +489,11 @@ namespace PwgTelegramBot.Controllers
                                     }
                                     else // User is authenticated
                                     {
+
                                         string[] stateArray = userState.State.Split(' ');
                                         if (stateArray.Length == 1)
                                         {
-                                            var messageSent = MessageModel.SendMessage(chatId, "Select a Pivotal Tracker action:", "", null, null, null, "2", null, null);
+                                            var messageSent = MessageModel.SendMessage(chatId, "Select a Pivotal Tracker action:", "", null, null, null, "2", null, pivotalAuth.ApiToken);
                                         }
                                         else if (stateArray.Length == 2)
                                         {
@@ -615,7 +616,7 @@ namespace PwgTelegramBot.Controllers
                                         {
                                             if (stateArray[1] == "1") // Add a story
                                             {
-                                                var projects = Models.Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                                                var projects = Models.Tracker.Projects.Project.GetProjects(pivotalAuth.ApiToken).OrderBy(x => x.Name);
                                                 int projectIndex = int.Parse(stateArray[2]) - 1;
                                                 var project = projects.ElementAt(projectIndex);
                                                 int storyTypeIndex = int.Parse(stateArray[3]) - 1;
@@ -625,17 +626,17 @@ namespace PwgTelegramBot.Controllers
                                                 int possiblePointIndex = int.Parse(stateArray[4]) - 1;
                                                 possiblePoints.Insert(0, "Unestimated");
                                                 string possiblePoint = possiblePoints.ElementAt(possiblePointIndex);
-                                                var possibleRequesters = Models.Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name);
+                                                var possibleRequesters = Models.Tracker.Projects.ProjectMembership.GetMemberships(project.Id, pivotalAuth.ApiToken).OrderBy(x => x.Person.Name);
                                                 int possibleRequestersIndex = int.Parse(stateArray[5]) - 1;
                                                 var possibleRequester = possibleRequesters.ElementAt(possibleRequestersIndex);
-                                                var possibleOwners = Models.Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name).ToList();
+                                                var possibleOwners = Models.Tracker.Projects.ProjectMembership.GetMemberships(project.Id, pivotalAuth.ApiToken).OrderBy(x => x.Person.Name).ToList();
                                                 int possibleOwnersIndex = int.Parse(stateArray[6]) - 2; // Not -1 since the first item is No owners, but this array doesn't match that
                                                 var possibleOwner = new Models.Tracker.Projects.ProjectMembership();
                                                 if (possibleOwnersIndex != -1)
                                                 {
                                                     possibleOwner = possibleOwners.ElementAt(possibleOwnersIndex);
                                                 }
-                                                var possibleLabels = Models.Tracker.Projects.ProjectLabel.GetLabels(project.Id);
+                                                var possibleLabels = Models.Tracker.Projects.ProjectLabel.GetLabels(project.Id, pivotalAuth.ApiToken);
                                                 var possibleLabelsIndex = int.Parse(stateArray[8]) - 2; // Not -1, see possibleOwnersIndex
                                                 var possibleLabel = new ProjectLabel();
                                                 if (possibleLabelsIndex != -1)
@@ -688,7 +689,7 @@ namespace PwgTelegramBot.Controllers
                                                     tasksArrayTemp[i] = task;
                                                 }
                                                 newStory.tasks = tasksArrayTemp;
-                                                var addedStory = Models.Tracker.Projects.ProjectStory.AddStory(project.Id, newStory);
+                                                var addedStory = Models.Tracker.Projects.ProjectStory.AddStory(project.Id, newStory, pivotalAuth.ApiToken);
 
                                                 if (addedStory != null)
                                                 {

@@ -35,7 +35,7 @@ namespace PwgTelegramBot.Models
             return json;
         }
 
-        private static string pivotalTrackerApiToken = ConfigurationManager.AppSettings["PivotalTrackerApiToken"];
+        //private static string pivotalTrackerApiToken = ConfigurationManager.AppSettings["PivotalTrackerApiToken"];
         private static string harvestUsername = ConfigurationManager.AppSettings["HarvestUsername"];
         private static string harvestPassword = ConfigurationManager.AppSettings["HarvestPassword"];
         private static string harvestAccount = ConfigurationManager.AppSettings["HarvestAccountName"];
@@ -168,7 +168,7 @@ namespace PwgTelegramBot.Models
 
 
 
-        public static dynamic GetTrackerJson(string url)
+        public static dynamic GetTrackerJson(string url, string pivotalTrackerApiToken)
         {
             var request = WebRequest.Create(url);
             request.ContentType = "application/json; charset=utf-8";
@@ -182,7 +182,7 @@ namespace PwgTelegramBot.Models
             return json;
         }
 
-        public static dynamic PostTrackerJson(string url, string postJson)
+        public static dynamic PostTrackerJson(string url, string postJson, string pivotalTrackerApiToken)
         {
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.Accept = "application/json";

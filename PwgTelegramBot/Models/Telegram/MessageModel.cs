@@ -146,7 +146,7 @@ namespace PwgTelegramBot.Models.Telegram
                     if (!string.IsNullOrEmpty(pivotalToken) && !string.IsNullOrWhiteSpace(pivotalToken))
                     {
                         var keyboardMarkup = new InlineKeyboardMarkup();
-                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        var projects = Tracker.Projects.Project.GetProjects(pivotalToken).OrderBy(x => x.Name);
                         var buttonsArray = new InlineKeyboardButton[projects.Count(), 1];
                         int i = 0;
                         foreach (var project in projects)
@@ -165,7 +165,7 @@ namespace PwgTelegramBot.Models.Telegram
                     if (!string.IsNullOrEmpty(pivotalToken) && !string.IsNullOrWhiteSpace(pivotalToken))
                     {
                         var keyboardMarkup = new InlineKeyboardMarkup();
-                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        var projects = Tracker.Projects.Project.GetProjects(pivotalToken).OrderBy(x => x.Name);
                         var buttonsArray = new InlineKeyboardButton[projects.Count(), 1];
                         int i = 0;
                         foreach (var project in projects)
@@ -248,7 +248,7 @@ namespace PwgTelegramBot.Models.Telegram
                         model.reply_markup = keyboardMarkup;
                     } else if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1") // Pivotal, add a new story, selected project, selected story type, select points
                     {
-                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        var projects = Tracker.Projects.Project.GetProjects(pivotalToken).OrderBy(x => x.Name);
                         int projectIndex = int.Parse(replyMarkupArray[2]) - 1;
                         var project = projects.ElementAt(projectIndex);
                         List<string> possiblePoints = project.PointScale.Split(',').ToList();
@@ -272,14 +272,14 @@ namespace PwgTelegramBot.Models.Telegram
                 {
                     if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1") // Pivotal, add a new story, selected projected, selected story type, selected points, select requester
                     {
-                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        var projects = Tracker.Projects.Project.GetProjects(pivotalToken).OrderBy(x => x.Name);
                         int projectIndex = int.Parse(replyMarkupArray[2]) - 1;
                         var project = projects.ElementAt(projectIndex);
                         List<string> possiblePoints = project.PointScale.Split(',').ToList();
                         int possiblePointIndex = int.Parse(replyMarkupArray[4]) - 1;
                         possiblePoints.Insert(0, "Unestimated");
                         string possiblePoint = possiblePoints.ElementAt(possiblePointIndex);
-                        var possibleRequesters = Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name);
+                        var possibleRequesters = Tracker.Projects.ProjectMembership.GetMemberships(project.Id, pivotalToken).OrderBy(x => x.Person.Name);
 
                         var keyboardMarkup = new InlineKeyboardMarkup();
                         var buttonsArray = new InlineKeyboardButton[possibleRequesters.Count(), 1];
@@ -300,17 +300,17 @@ namespace PwgTelegramBot.Models.Telegram
                 {
                     if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1") // Pivotal, add a new story, selected projected, selected story type, selected points, selected requester, select owner
                     {
-                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        var projects = Tracker.Projects.Project.GetProjects(pivotalToken).OrderBy(x => x.Name);
                         int projectIndex = int.Parse(replyMarkupArray[2]) - 1;
                         var project = projects.ElementAt(projectIndex);
                         List<string> possiblePoints = project.PointScale.Split(',').ToList();
                         int possiblePointIndex = int.Parse(replyMarkupArray[4]) - 1;
                         possiblePoints.Insert(0, "Unestimated");
                         string possiblePoint = possiblePoints.ElementAt(possiblePointIndex);
-                        var possibleRequesters = Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name);
+                        var possibleRequesters = Tracker.Projects.ProjectMembership.GetMemberships(project.Id, pivotalToken).OrderBy(x => x.Person.Name);
                         int possibleRequestersIndex = int.Parse(replyMarkupArray[5]) - 1;
                         var possibleRequester = possibleRequesters.ElementAt(possibleRequestersIndex);
-                        var possibleOwners = Tracker.Projects.ProjectMembership.GetMemberships(project.Id).OrderBy(x => x.Person.Name).ToList();
+                        var possibleOwners = Tracker.Projects.ProjectMembership.GetMemberships(project.Id, pivotalToken).OrderBy(x => x.Person.Name).ToList();
 
                         var keyboardMarkup = new InlineKeyboardMarkup();
                         var buttonsArray = new InlineKeyboardButton[possibleOwners.Count() + 1, 1];
@@ -336,10 +336,10 @@ namespace PwgTelegramBot.Models.Telegram
                 {
                     if (replyMarkupArray[0] == "2" && replyMarkupArray[1] == "1" && replyMarkupArray[7] == "3")
                     {
-                        var projects = Tracker.Projects.Project.GetProjects().OrderBy(x => x.Name);
+                        var projects = Tracker.Projects.Project.GetProjects(pivotalToken).OrderBy(x => x.Name);
                         int projectIndex = int.Parse(replyMarkupArray[2]) - 1;
                         var project = projects.ElementAt(projectIndex);
-                        var possibleLabels = Tracker.Projects.ProjectLabel.GetLabels(project.Id);
+                        var possibleLabels = Tracker.Projects.ProjectLabel.GetLabels(project.Id, pivotalToken);
 
                         var keyboardMarkup = new InlineKeyboardMarkup();
                         var buttonsArray = new InlineKeyboardButton[possibleLabels.Count() + 1, 1];

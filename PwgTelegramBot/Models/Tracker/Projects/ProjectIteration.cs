@@ -38,12 +38,12 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return cycle;
         }
 
-        public static List<TrackerProjectIterationCycleTimeDetails> GetCycles(int iterationNumber, int projectId)
+        public static List<TrackerProjectIterationCycleTimeDetails> GetCycles(int iterationNumber, int projectId, string pivotalTrackerApiToken)
         {
             List<TrackerProjectIterationCycleTimeDetails> cycles = new List<TrackerProjectIterationCycleTimeDetails>();
 
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/iterations/" + iterationNumber + "/analytics/cycle_time_details";
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var item in json)
             {
                 cycles.Add(JsonToCycle(item));
@@ -73,12 +73,12 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return analytics;
         }
 
-        public static TrackerProjectIterationAnalytics GetAnalytics(int iterationNumber, int projectId)
+        public static TrackerProjectIterationAnalytics GetAnalytics(int iterationNumber, int projectId, string pivotalTrackerApiToken)
         {
             TrackerProjectIterationAnalytics analytics = new TrackerProjectIterationAnalytics();
 
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/iterations/" + iterationNumber + "/analytics";
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             analytics = JsonToAnalytics(json);
 
             return analytics;
@@ -117,21 +117,21 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return iteration;
         }
 
-        public static ProjectIteration GetIteration(int iterationNumber, int projectId)
+        public static ProjectIteration GetIteration(int iterationNumber, int projectId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/iterations/" + iterationNumber;
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
 
             ProjectIteration iteration = JsonToIteration(json);
             
             return iteration;
         }
 
-        private static List<ProjectIteration> GetIterationsFromUrl(string url)
+        private static List<ProjectIteration> GetIterationsFromUrl(string url, string pivotalTrackerApiToken)
         {
             List<ProjectIteration> iterations = new List<ProjectIteration>();
 
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json)
             {
                 ProjectIteration iteration = JsonToIteration(element);
@@ -141,31 +141,31 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return iterations;
         }
 
-        public static List<ProjectIteration> GetIterations(int projectId)
+        public static List<ProjectIteration> GetIterations(int projectId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/iterations";
-            List<ProjectIteration> iterations = GetIterationsFromUrl(url);
+            List<ProjectIteration> iterations = GetIterationsFromUrl(url, pivotalTrackerApiToken);
             return iterations;
         }
 
-        public static List<ProjectIteration> GetIterationsWithOffset(int projectId, int offset)
+        public static List<ProjectIteration> GetIterationsWithOffset(int projectId, int offset, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/iterations?offset=" + offset;
-            List<ProjectIteration> iterations = GetIterationsFromUrl(url);
+            List<ProjectIteration> iterations = GetIterationsFromUrl(url, pivotalTrackerApiToken);
             return iterations;
         }
 
-        public static List<ProjectIteration> GetIterationsWithLimit(int projectId, int limit)
+        public static List<ProjectIteration> GetIterationsWithLimit(int projectId, int limit, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/iterations?limit=" + limit;
-            List<ProjectIteration> iterations = GetIterationsFromUrl(url);
+            List<ProjectIteration> iterations = GetIterationsFromUrl(url, pivotalTrackerApiToken);
             return iterations;
         }
 
-        public static List<ProjectIteration> GetIterations(int projectId, int offset, int limit)
+        public static List<ProjectIteration> GetIterations(int projectId, int offset, int limit, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/iterations?offset=" + offset + "&limit=" + limit;
-            List<ProjectIteration> iterations = GetIterationsFromUrl(url);
+            List<ProjectIteration> iterations = GetIterationsFromUrl(url, pivotalTrackerApiToken);
             return iterations;
         }
 

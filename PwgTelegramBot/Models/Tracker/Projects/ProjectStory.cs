@@ -72,7 +72,7 @@ namespace PwgTelegramBot.Models.Tracker.Projects
         public List<ProjectLabel> Labels { get; set; }
         public int? OwnedById { get; set; }
 
-        public static ProjectStory AddStory(int projectId, AddStoryModel story)
+        public static ProjectStory AddStory(int projectId, AddStoryModel story, string pivotalTrackerApiToken)
         {
 
             string postJson = JsonConvert.SerializeObject(story, new JsonSerializerSettings
@@ -81,7 +81,7 @@ namespace PwgTelegramBot.Models.Tracker.Projects
                 DefaultValueHandling = DefaultValueHandling.Ignore
             });
 
-            dynamic json = WebRequestHelper.PostTrackerJson("https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/stories", postJson);
+            dynamic json = WebRequestHelper.PostTrackerJson("https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/stories", postJson, pivotalTrackerApiToken);
 
             ProjectStory newStory = JsonToStory(json);
 
@@ -124,10 +124,10 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return story;
         }
 
-        public static List<ProjectStory> GetStories(string url)
+        public static List<ProjectStory> GetStories(string url, string pivotalTrackerApiToken)
         {
             List<ProjectStory> stories = new List<ProjectStory>();
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json)
             {
                 ProjectStory story = JsonToStory(element);
@@ -137,20 +137,20 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return stories;
         }
 
-        public static List<ProjectStory> GetStories(int projectId)
+        public static List<ProjectStory> GetStories(int projectId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/stories";
-            return GetStories(url);
+            return GetStories(url, pivotalTrackerApiToken);
         }
 
-        public static ProjectStory GetStory(int projectId, int storyId)
+        public static ProjectStory GetStory(int projectId, int storyId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/stories/" + storyId;
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             return JsonToStory(json);
         }
 
-        public static List<ProjectStory> GetStories(ProjectStoryParameters parameters)
+        public static List<ProjectStory> GetStories(ProjectStoryParameters parameters, string pivotalTrackerApiToken)
         {
             string urlParameters = "";
             if (!string.IsNullOrEmpty(parameters.LabelName) && !string.IsNullOrWhiteSpace(parameters.LabelName))
@@ -219,7 +219,7 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             }
 
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + parameters.ProjectId + "/stories?" + urlParameters;
-            return GetStories(url);
+            return GetStories(url, pivotalTrackerApiToken);
         }
     }
 }

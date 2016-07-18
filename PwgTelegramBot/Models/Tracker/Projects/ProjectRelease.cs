@@ -40,10 +40,10 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return release;
         }
 
-        public static List<ProjectRelease> GetReleases(string url)
+        public static List<ProjectRelease> GetReleases(string url, string pivotalTrackerApiToken)
         {
             List<ProjectRelease> releases = new List<ProjectRelease>();
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json)
             {
                 ProjectRelease release = JsonToRelease(element);
@@ -53,38 +53,38 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return releases;
         }
 
-        public static List<ProjectRelease> GetReleases(int projectId)
+        public static List<ProjectRelease> GetReleases(int projectId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/releases";
-            return GetReleases(url);
+            return GetReleases(url, pivotalTrackerApiToken);
         }
 
-        public static List<ProjectRelease> GetReleasesWithOffset(int projectId, int offset)
+        public static List<ProjectRelease> GetReleasesWithOffset(int projectId, int offset, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/releases?offset=" + offset;
-            return GetReleases(url);
+            return GetReleases(url, pivotalTrackerApiToken);
         }
 
-        public static List<ProjectRelease> GetReleasesWithLimit(int projectId, int limit)
+        public static List<ProjectRelease> GetReleasesWithLimit(int projectId, int limit, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/releases?limit=" + limit;
-            return GetReleases(url);
+            return GetReleases(url, pivotalTrackerApiToken);
         }
 
-        public static List<ProjectRelease> GetReleases(int projectId, int offset, int limit)
+        public static List<ProjectRelease> GetReleases(int projectId, int offset, int limit, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/releases?offset=" + offset + "&limit=" + limit;
-            return GetReleases(url);
+            return GetReleases(url, pivotalTrackerApiToken);
         }
 
-        public ProjectRelease GetRelease(int projectId, int releaseId)
+        public ProjectRelease GetRelease(int projectId, int releaseId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/releases/" + releaseId;
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             return JsonToRelease(json);
         }
 
-        public static ProjectRelease GetRelease(int projectId, string releaseName)
+        public static ProjectRelease GetRelease(int projectId, string releaseName, string pivotalTrackerApiToken)
         {
             int offset = 0;
             int limit = 10;
@@ -92,7 +92,7 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             bool loop = true;
             while (loop)
             {
-                var releases = GetReleases(projectId, offset, limit);
+                var releases = GetReleases(projectId, offset, limit, pivotalTrackerApiToken);
                 if (releases.Count == 0)
                 {
                     loop = false;
@@ -108,12 +108,12 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return new ProjectRelease();
         }
 
-        public static List<ProjectStory> GetReleaseStories(int projectId, int releaseId)
+        public static List<ProjectStory> GetReleaseStories(int projectId, int releaseId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/releases/" + releaseId + "/stories";
             List<ProjectStory> stories = new List<ProjectStory>();
 
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json)
             {
                 ProjectStory story = ProjectStory.JsonToStory(element);

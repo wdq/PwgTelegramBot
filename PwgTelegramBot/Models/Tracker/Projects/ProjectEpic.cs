@@ -33,10 +33,10 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return epic;
         }
 
-        public static List<ProjectEpic> GetEpics(string url)
+        public static List<ProjectEpic> GetEpics(string url, string pivotalTrackerApiToken)
         {
             List<ProjectEpic> epics = new List<ProjectEpic>();
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json)
             {
                 ProjectEpic epic = JsonToEpic(element);
@@ -46,22 +46,22 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return epics;
         }
 
-        public static List<ProjectEpic> GetEpics(int projectId)
+        public static List<ProjectEpic> GetEpics(int projectId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/epics";
-            return GetEpics(url);
+            return GetEpics(url, pivotalTrackerApiToken);
         }
 
-        public static List<ProjectEpic> GetEpics(int projectId, string filter)
+        public static List<ProjectEpic> GetEpics(int projectId, string filter, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/epics?filter=" + filter;
-            return GetEpics(url);
+            return GetEpics(url, pivotalTrackerApiToken);
         }
 
-        public static ProjectEpic GetEpic(int projectId, int epicId)
+        public static ProjectEpic GetEpic(int projectId, int epicId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/epics/" + epicId;
-            return JsonToEpic(WebRequestHelper.GetTrackerJson(url));
+            return JsonToEpic(WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken));
         }
     }
 }

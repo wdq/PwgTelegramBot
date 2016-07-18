@@ -88,28 +88,28 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return project;            
         }
 
-        public static Project GetProject(int projectId)
+        public static Project GetProject(int projectId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId;
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
 
             Project project = JsonToProject(json);
 
             return project;
         }
 
-        public static Project GetProject(string projectName)
+        public static Project GetProject(string projectName, string pivotalTrackerApiToken)
         {
-            List<Project> allProjects = GetProjects();
+            List<Project> allProjects = GetProjects(pivotalTrackerApiToken);
             return allProjects.FirstOrDefault(x => x.Name == projectName);
         }
 
-        public static List<Project> GetProjects()
+        public static List<Project> GetProjects(string pivotalTrackerApiToken)
         {
             List<Project> projects = new List<Project>();
 
             string url = "https://www.pivotaltracker.com/services/v5/projects";
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json)
             {
                 Project project = JsonToProject(element);

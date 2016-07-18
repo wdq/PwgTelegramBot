@@ -28,12 +28,12 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return label;
         }
 
-        public static List<ProjectLabel> GetLabels(int projectId)
+        public static List<ProjectLabel> GetLabels(int projectId, string pivotalTrackerApiToken)
         {
             List<ProjectLabel> labels = new List<ProjectLabel>();
 
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/labels";
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json)
             {
                 ProjectLabel label = JsonToLabel(element);
@@ -43,16 +43,16 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return labels;
         }
 
-        public static ProjectLabel GetLabel(int projectId, int labelId)
+        public static ProjectLabel GetLabel(int projectId, int labelId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/labels/" + labelId;
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             return JsonToLabel(json);
         }
 
-        public static ProjectLabel GetLabel(int projectId, string labelName)
+        public static ProjectLabel GetLabel(int projectId, string labelName, string pivotalTrackerApiToken)
         {
-            var labels = GetLabels(projectId);
+            var labels = GetLabels(projectId, pivotalTrackerApiToken);
             return labels.FirstOrDefault(x => x.Name == labelName);
         }
     }

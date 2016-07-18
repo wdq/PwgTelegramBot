@@ -65,10 +65,10 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return snapshot;
         }
 
-        public static List<TrackerProjectHistorySnapshot> GetHistorySnapshots(string url)
+        public static List<TrackerProjectHistorySnapshot> GetHistorySnapshots(string url, string pivotalTrackerApiToken)
         {
             List<TrackerProjectHistorySnapshot> snapshots = new List<TrackerProjectHistorySnapshot>();
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json.data)
             {
                 TrackerProjectHistorySnapshot snapshot = JsonToSnapshot(element);
@@ -78,7 +78,7 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return snapshots;
         }
 
-        public static List<TrackerProjectHistorySnapshot> GetHistorySnapshots(TrackerProjectHistorySnapshotParameters parameters)
+        public static List<TrackerProjectHistorySnapshot> GetHistorySnapshots(TrackerProjectHistorySnapshotParameters parameters, string pivotalTrackerApiToken)
         {
             string urlParameters = "";
             if (parameters.StartDate.HasValue)
@@ -103,7 +103,7 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             }
 
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + parameters.ProjectId + "/history/snapshots/?" + urlParameters;
-            return GetHistorySnapshots(url);
+            return GetHistorySnapshots(url, pivotalTrackerApiToken);
         }
     }
 
@@ -159,10 +159,10 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return history;
         }
 
-        public static List<TrackerProjectHistoryDay> GetHistoryDays(string url)
+        public static List<TrackerProjectHistoryDay> GetHistoryDays(string url, string pivotalTrackerApiToken)
         {
             List<TrackerProjectHistoryDay> histories = new List<TrackerProjectHistoryDay>();
-            dynamic json = WebRequestHelper.GetTrackerJson(url);
+            dynamic json = WebRequestHelper.GetTrackerJson(url, pivotalTrackerApiToken);
             foreach (var element in json.data)
             {
                 TrackerProjectHistoryDay history = JsonToHistoryDay(element);
@@ -172,7 +172,7 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             return histories;
         }
 
-        public static List<TrackerProjectHistoryDay> GetHistoryDays(TrackerProjectHistoryDayParameters parameters)
+        public static List<TrackerProjectHistoryDay> GetHistoryDays(TrackerProjectHistoryDayParameters parameters, string pivotalTrackerApiToken)
         {
             string urlParameters = "";
             if (!string.IsNullOrEmpty(parameters.LabelName) && !string.IsNullOrWhiteSpace(parameters.LabelName))
@@ -189,19 +189,19 @@ namespace PwgTelegramBot.Models.Tracker.Projects
             }
 
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + parameters.ProjectId + "/history/days/?" + urlParameters;
-            return GetHistoryDays(url);
+            return GetHistoryDays(url, pivotalTrackerApiToken);
         }
 
-        public static List<TrackerProjectHistoryDay> GetReleaseHistoryDays(int projectId, int releaseId)
+        public static List<TrackerProjectHistoryDay> GetReleaseHistoryDays(int projectId, int releaseId, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/history/releases/" + releaseId + "/days";
-            return GetHistoryDays(url);        
+            return GetHistoryDays(url, pivotalTrackerApiToken);        
         }
 
-        public static List<TrackerProjectHistoryDay> GetIterationHistoryDays(int projectId, int iterationNumber)
+        public static List<TrackerProjectHistoryDay> GetIterationHistoryDays(int projectId, int iterationNumber, string pivotalTrackerApiToken)
         {
             string url = "https://www.pivotaltracker.com/services/v5/projects/" + projectId + "/history/iterations/" + iterationNumber + "/days";
-            return GetHistoryDays(url);
+            return GetHistoryDays(url, pivotalTrackerApiToken);
         }
     }
 }
