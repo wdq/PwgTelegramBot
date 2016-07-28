@@ -185,6 +185,8 @@
     <Compile Include="HarvestAuth.cs">
       <DependentUpon>BotDatabase.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Bot\BotHarvestModel.cs" />
+    <Compile Include="Models\Bot\BotTelegramModel.cs" />
     <Compile Include="Models\Telegram\AudioModel.cs" />
     <Compile Include="Models\Telegram\CallbackQueryModel.cs" />
     <Compile Include="Models\Telegram\ChatModel.cs" />
@@ -242,6 +244,7 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Compile Include="Models\Bot\BotPivotalModel.cs" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="config\appsettings.dev.config" />
