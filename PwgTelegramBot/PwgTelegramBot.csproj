@@ -52,8 +52,16 @@
     <Reference Include="EntityFramework.SqlServer">
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="Gelf4Net, Version=2.0.3.15, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gelf4Net.2.0.3.15\lib\net40\Gelf4Net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Harvest.Net">
       <HintPath>..\packages\Harvest.Net.0.15.5\lib\net45\Harvest.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Rest.ClientRuntime">
@@ -151,13 +159,32 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="BotDatabase.cs" />
+    <Compile Include="BotDatabase.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BotDatabase.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BotDatabase.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BotDatabase.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BotDatabase.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BotDatabase.edmx</DependentUpon>
+    </Compile>
     <Compile Include="Controllers\BotController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="HarvestAuth.cs" />
+    <Compile Include="HandledWebhook.cs">
+      <DependentUpon>BotDatabase.tt</DependentUpon>
+    </Compile>
+    <Compile Include="HarvestAuth.cs">
+      <DependentUpon>BotDatabase.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Telegram\AudioModel.cs" />
     <Compile Include="Models\Telegram\CallbackQueryModel.cs" />
     <Compile Include="Models\Telegram\ChatModel.cs" />
@@ -187,12 +214,28 @@
     <Compile Include="Models\Tracker\Projects\ProjectStory.cs" />
     <Compile Include="Models\Tracker\Projects\ProjectTask.cs" />
     <Compile Include="Models\WebRequestHelper.cs" />
-    <Compile Include="PivotalAuth.cs" />
+    <Compile Include="PivotalAuth.cs">
+      <DependentUpon>BotDatabase.tt</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UserState.cs" />
-    <Compile Include="UserTextEntry.cs" />
+    <Compile Include="UserState.cs">
+      <DependentUpon>BotDatabase.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserTextEntry.cs">
+      <DependentUpon>BotDatabase.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BotDatabase.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>BotDatabase.edmx</DependentUpon>
+      <LastGenOutput>BotDatabase.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="BotDatabase.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>BotDatabase.edmx</DependentUpon>
+      <LastGenOutput>BotDatabase.cs</LastGenOutput>
+    </Content>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="favicon.ico" />
@@ -202,6 +245,13 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="config\appsettings.dev.config" />
+    <EntityDeploy Include="BotDatabase.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>BotDatabase.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="BotDatabase.edmx.diagram">
+      <DependentUpon>BotDatabase.edmx</DependentUpon>
+    </Content>
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />

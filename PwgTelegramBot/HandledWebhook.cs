@@ -12,14 +12,9 @@ namespace PwgTelegramBot
     using System;
     using System.Collections.Generic;
     
-    public partial class UserState
+    public partial class HandledWebhook
     {
-        public int UserId { get; set; }
-        public string State { get; set; }
-        public Nullable<bool> Approved { get; set; }
-        public string Notes { get; set; }
-        public Nullable<bool> IsAdmin { get; set; }
-        public Nullable<bool> IsStateTextEntry { get; set; }
-        public Nullable<int> ChatId { get; set; }
+        public System.Guid Id { get; set; }
+        public int UpdateId { get; set; }
     }
 }

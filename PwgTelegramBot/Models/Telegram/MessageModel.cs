@@ -30,6 +30,8 @@ namespace PwgTelegramBot.Models.Telegram
 
     public class MessageModel
     {
+        private static readonly log4net.ILog _Log = log4net.LogManager.GetLogger(typeof(MessageModel));
+
         public int MessageId { get; set; }
         public UserModel From { get; set; }
         public DateTime Date { get; set; }
@@ -68,6 +70,7 @@ namespace PwgTelegramBot.Models.Telegram
 
         public static MessageModel SendMessage(int chatId, string text, string parseMode, bool? disableWebPagePreview, bool? disableNotification, int? replyToMessageId, string replyMarkup, HarvestRestClient harvestClient, string pivotalToken)
         {
+            _Log.Info("Sending Message: chatID=" + chatId + " text=" + text);
             SendMessageModel model = new SendMessageModel();
 
             string path = "/sendMessage";
